@@ -113,6 +113,16 @@ export const vocabulary = pgTable(
   }),
 );
 
+export const appSettings = pgTable("app_settings", {
+  id: integer("id").primaryKey().default(1),
+  newCardsPerDay: integer("new_cards_per_day").default(20).notNull(),
+  retention: real("retention").default(0.9).notNull(),
+  voiceId: text("voice_id").default("es-MX-DaliaNeural").notNull(),
+  region: text("region").default("latam").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type AppSettings = typeof appSettings.$inferSelect;
 export type Card = typeof cards.$inferSelect;
 export type NewCard = typeof cards.$inferInsert;
 export type Note = typeof notes.$inferSelect;

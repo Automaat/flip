@@ -1,13 +1,32 @@
 import { and, asc, eq, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { cards, decks, notes } from "@/db/schema";
+import { getSettings } from "@/lib/settings";
 import { ReviewClient, type ReviewCard } from "./review-client";
 
 export const dynamic = "force-dynamic";
 
-async function fetchNextCard(deckId?: string): Promise<ReviewCard | null> {
+async function countNewIntroducedToday(): Promise<number> {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  // A card was "introduced today" if its first review_log entry is today.
+  const rows = await db.execute<{ count: number }>(sql`
+    select count(*)::int as count
+    from (
+      select card_id, min(reviewed_at) as first_at
+      from review_log
+      group by card_id
+    ) t
+    where t.first_at >= ${start.toISOString()}::timestamptz
+  `);
+  return rows[0]?.count ?? 0;
+}
+
+async function fetchNextCard(deckId: string | undefined, newCardsLeft: number): Promise<ReviewCard | null> {
   const now = new Date();
-  const baseWhere = or(eq(cards.state, "new"), lte(cards.due, now));
+  const dueOnly = lte(cards.due, now);
+  // Allow new cards only if quota remains.
+  const baseWhere = newCardsLeft > 0 ? or(eq(cards.state, "new"), dueOnly) : dueOnly;
   const whereExpr = deckId ? and(baseWhere, eq(cards.deckId, deckId)) : baseWhere;
   const due = await db
     .select({
@@ -66,8 +85,11 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export default async function ReviewPage({ searchParams }: Props) {
   const sp = await searchParams;
   const deckId = sp?.deck && UUID_RE.test(sp.deck) ? sp.deck : undefined;
+  const settings = await getSettings();
+  const introducedToday = await countNewIntroducedToday();
+  const newCardsLeft = Math.max(0, settings.newCardsPerDay - introducedToday);
   const [card, counts, deckName] = await Promise.all([
-    fetchNextCard(deckId),
+    fetchNextCard(deckId, newCardsLeft),
     fetchCounts(deckId),
     deckId ? fetchDeckName(deckId) : Promise.resolve(null),
   ]);

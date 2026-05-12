@@ -6,17 +6,20 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
-RUN corepack enable pnpm
+RUN corepack enable
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# --ignore-scripts is safe here: build-time native modules (sharp, esbuild
+# binaries, etc.) aren't required for the runtime app; sharp is only used
+# by the icons:gen dev script.
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 ###############
 # 2. build
 ###############
 FROM node:22-alpine AS build
 WORKDIR /app
-RUN corepack enable pnpm
+RUN corepack enable
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -39,10 +42,19 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOST=0.0.0.0
 
-RUN apk add --no-cache tini curl
-RUN corepack enable pnpm
+# postgresql-client gives us pg_isready + psql (~12MB). tini for PID 1.
+RUN apk add --no-cache tini curl postgresql-client
 
-# Non-root user for Next.js runtime; runs the long-lived server.
+# Init bundle lives in /app-init so the standalone server's own
+# node_modules in /app stays untouched.
+RUN mkdir -p /app-init
+COPY --from=build /app/node_modules /app-init/node_modules
+COPY --from=build /app/src /app-init/src
+COPY --from=build /app/drizzle /app-init/drizzle
+COPY --from=build /app/drizzle.config.ts /app-init/drizzle.config.ts
+COPY --from=build /app/package.json /app-init/package.json
+
+# Non-root user for the long-lived Next.js server.
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
@@ -51,21 +63,15 @@ COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=build --chown=nextjs:nodejs /app/public ./public
 
-# Init scripts (run as root before the server). These need tsx + drizzle-kit
-# from the build stage; copy the necessary node_modules.
-COPY --from=build /app/node_modules/.pnpm /app/.node_modules-init/.pnpm
-COPY --from=build /app/node_modules/.bin /app/.node_modules-init/.bin
-COPY --from=build /app/drizzle ./drizzle
-COPY --from=build /app/src/db ./src/db
-COPY --from=build /app/src/data ./src/data
-COPY --from=build /app/src/lib ./src/lib
-COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
-COPY --from=build /app/package.json /app/pnpm-lock.yaml ./
+# Audio dir is a volume target; ensure ownership before the run user takes
+# over so first-boot audio:gen can write.
+RUN mkdir -p /app/public/audio && chown -R nextjs:nodejs /app/public/audio
+
 COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=5 \
   CMD curl -fsS http://localhost:3000/api/health || exit 1
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]

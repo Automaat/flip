@@ -18,6 +18,7 @@ export type ReviewCard = {
     example?: string;
     exampleEnglish?: string;
     gender?: "m" | "f";
+    englishTrap?: string;
     audio?: { word?: string; example?: string };
   };
 };
@@ -147,7 +148,15 @@ export function ReviewClient({ card, counts }: { card: ReviewCard | null; counts
         </div>
         {revealed && (
           <>
+            {card.noteType === "false_friend" && card.fields.englishTrap && (
+              <div className="text-sm text-rose-500">
+                not <span className="line-through">{card.fields.englishTrap}</span>
+              </div>
+            )}
             <div className="text-xl text-zinc-600 dark:text-zinc-300">
+              {card.noteType === "false_friend" && (
+                <span className="text-emerald-500">= </span>
+              )}
               {card.fields.english}
             </div>
             {card.fields.example && (

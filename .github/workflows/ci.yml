@@ -58,6 +58,14 @@ jobs:
         run: pnpm db:migrate
       - name: Seed cards
         run: pnpm db:seed
+      - name: Cache vocab frequency list
+        id: vocab-cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: .cache
+          key: vocab-es-50k-v1
+      - name: Import vocabulary
+        run: pnpm db:import-vocab 5000
       - name: Cache Playwright browsers
         id: pw-cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0

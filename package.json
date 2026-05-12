@@ -17,6 +17,7 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:import-vocab": "tsx src/db/import-vocab.ts",
     "audio:gen": "tsx src/db/gen-audio.ts",
+    "icons:gen": "tsx scripts/gen-icons.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
@@ -34,7 +35,10 @@
     "zod": "^3.23.8"
   },
   "pnpm": {
-    "ignoredBuiltDependencies": ["sharp", "unrs-resolver"]
+    "ignoredBuiltDependencies": [
+      "sharp",
+      "unrs-resolver"
+    ]
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
@@ -47,6 +51,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "oxlint": "^1.64.0",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "tsx": "^4.19.2",
     "typescript": "^5",

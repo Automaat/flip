@@ -1,24 +1,63 @@
 {
   "name": "Flip — Spanish Learning",
   "short_name": "Flip",
-  "description": "FSRS spaced repetition Spanish learning",
+  "description": "FSRS spaced repetition Spanish learning with AI mnemonics, comprehensible input, and audio.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
   "orientation": "portrait",
+  "lang": "en",
+  "categories": ["education"],
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start review",
+      "short_name": "Review",
+      "url": "/review",
+      "description": "Open today's review session"
+    },
+    {
+      "name": "Cognates",
+      "short_name": "Cognates",
+      "url": "/cognates"
+    },
+    {
+      "name": "Verbs",
+      "short_name": "Verbs",
+      "url": "/verbs"
     }
   ]
 }

@@ -7,8 +7,8 @@ test("verbs page renders conjugation table", async ({ page }) => {
   await expect(page.getByText("soy", { exact: true })).toBeVisible();
 });
 
-test("import API creates verb deck", async ({ request }) => {
-  const res = await request.post("/api/verbs/import");
+test("import API creates verb deck (present)", async ({ request }) => {
+  const res = await request.post("/api/verbs/import", { data: { tense: "present" } });
   expect(res.ok()).toBeTruthy();
   const body = await res.json();
   expect(body.ok).toBe(true);
@@ -16,6 +16,23 @@ test("import API creates verb deck", async ({ request }) => {
   if (!body.alreadyImported) {
     expect(body.cardsCreated).toBe(70);
   }
+});
+
+test("import API creates verb deck (preterite)", async ({ request }) => {
+  const res = await request.post("/api/verbs/import", { data: { tense: "preterite" } });
+  expect(res.ok()).toBeTruthy();
+  const body = await res.json();
+  expect(body.ok).toBe(true);
+  expect(body.tense).toBe("preterite");
+  if (!body.alreadyImported) {
+    expect(body.cardsCreated).toBe(70);
+  }
+});
+
+test("verbs preterite tab shows preterite forms", async ({ page }) => {
+  await page.goto("/verbs?tense=preterite");
+  await expect(page.getByText("fui", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("tuvo", { exact: true })).toBeVisible();
 });
 
 test("home page links to verbs", async ({ page }) => {

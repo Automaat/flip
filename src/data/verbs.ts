@@ -1,5 +1,5 @@
 export type Person = "yo" | "tú" | "él/ella" | "nosotros" | "ellos/ellas";
-export type Tense = "present";
+export type Tense = "present" | "preterite";
 
 /** Latin-American 5-person paradigm (no vosotros). */
 export const PERSONS: Person[] = ["yo", "tú", "él/ella", "nosotros", "ellos/ellas"];
@@ -193,6 +193,191 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
       "él/ella": { es: "Ella sale del trabajo.", en: "She leaves work." },
       nosotros: { es: "Nosotros salimos hoy.", en: "We are leaving today." },
       "ellos/ellas": { es: "Ellos salen a correr.", en: "They go out for a run." },
+    },
+  },
+];
+
+export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
+  {
+    infinitive: "ser",
+    english: "to be (essence)",
+    tense: "preterite",
+    forms: { yo: "fui", tú: "fuiste", "él/ella": "fue", nosotros: "fuimos", "ellos/ellas": "fueron" },
+    exampleByPerson: {
+      yo: { es: "Ayer fui el primero.", en: "Yesterday I was the first." },
+      tú: { es: "Tú fuiste muy amable.", en: "You were very kind." },
+      "él/ella": { es: "Ella fue mi maestra.", en: "She was my teacher." },
+      nosotros: { es: "Nosotros fuimos amigos.", en: "We were friends." },
+      "ellos/ellas": { es: "Ellos fueron los ganadores.", en: "They were the winners." },
+    },
+  },
+  {
+    infinitive: "estar",
+    english: "to be (state/location)",
+    tense: "preterite",
+    forms: { yo: "estuve", tú: "estuviste", "él/ella": "estuvo", nosotros: "estuvimos", "ellos/ellas": "estuvieron" },
+    exampleByPerson: {
+      yo: { es: "Ayer estuve enfermo.", en: "Yesterday I was sick." },
+      tú: { es: "Tú estuviste aquí.", en: "You were here." },
+      "él/ella": { es: "Él estuvo callado.", en: "He was quiet." },
+      nosotros: { es: "Nosotros estuvimos juntos.", en: "We were together." },
+      "ellos/ellas": { es: "Ellos estuvieron de viaje.", en: "They were on a trip." },
+    },
+  },
+  {
+    infinitive: "ir",
+    english: "to go",
+    tense: "preterite",
+    forms: { yo: "fui", tú: "fuiste", "él/ella": "fue", nosotros: "fuimos", "ellos/ellas": "fueron" },
+    exampleByPerson: {
+      yo: { es: "Fui a la tienda.", en: "I went to the store." },
+      tú: { es: "Tú fuiste al cine.", en: "You went to the movies." },
+      "él/ella": { es: "Ella fue a México.", en: "She went to Mexico." },
+      nosotros: { es: "Nosotros fuimos juntos.", en: "We went together." },
+      "ellos/ellas": { es: "Ellos fueron a la playa.", en: "They went to the beach." },
+    },
+  },
+  {
+    infinitive: "tener",
+    english: "to have",
+    tense: "preterite",
+    forms: { yo: "tuve", tú: "tuviste", "él/ella": "tuvo", nosotros: "tuvimos", "ellos/ellas": "tuvieron" },
+    exampleByPerson: {
+      yo: { es: "Ayer tuve un examen.", en: "Yesterday I had an exam." },
+      tú: { es: "Tú tuviste razón.", en: "You were right." },
+      "él/ella": { es: "Él tuvo suerte.", en: "He was lucky." },
+      nosotros: { es: "Nosotros tuvimos miedo.", en: "We were afraid." },
+      "ellos/ellas": { es: "Ellas tuvieron éxito.", en: "They were successful." },
+    },
+  },
+  {
+    infinitive: "hacer",
+    english: "to do / to make",
+    tense: "preterite",
+    forms: { yo: "hice", tú: "hiciste", "él/ella": "hizo", nosotros: "hicimos", "ellos/ellas": "hicieron" },
+    exampleByPerson: {
+      yo: { es: "Hice la tarea anoche.", en: "I did the homework last night." },
+      tú: { es: "Tú hiciste un buen trabajo.", en: "You did a good job." },
+      "él/ella": { es: "Ella hizo el pastel.", en: "She made the cake." },
+      nosotros: { es: "Nosotros hicimos planes.", en: "We made plans." },
+      "ellos/ellas": { es: "Ellos hicieron la fiesta.", en: "They threw the party." },
+    },
+  },
+  {
+    infinitive: "poder",
+    english: "to be able / could",
+    tense: "preterite",
+    forms: { yo: "pude", tú: "pudiste", "él/ella": "pudo", nosotros: "pudimos", "ellos/ellas": "pudieron" },
+    exampleByPerson: {
+      yo: { es: "No pude dormir bien.", en: "I couldn't sleep well." },
+      tú: { es: "Tú pudiste ayudarme.", en: "You were able to help me." },
+      "él/ella": { es: "Él pudo terminar a tiempo.", en: "He managed to finish on time." },
+      nosotros: { es: "Nosotros pudimos verlo.", en: "We managed to see it." },
+      "ellos/ellas": { es: "Ellos pudieron escapar.", en: "They managed to escape." },
+    },
+  },
+  {
+    infinitive: "querer",
+    english: "to want / love",
+    tense: "preterite",
+    forms: { yo: "quise", tú: "quisiste", "él/ella": "quiso", nosotros: "quisimos", "ellos/ellas": "quisieron" },
+    exampleByPerson: {
+      yo: { es: "Quise llamarte ayer.", en: "I tried to call you yesterday." },
+      tú: { es: "Tú quisiste venir.", en: "You wanted to come." },
+      "él/ella": { es: "Ella quiso decir algo.", en: "She meant to say something." },
+      nosotros: { es: "Nosotros quisimos viajar.", en: "We wanted to travel." },
+      "ellos/ellas": { es: "Ellos quisieron quedarse.", en: "They wanted to stay." },
+    },
+  },
+  {
+    infinitive: "saber",
+    english: "to know (facts)",
+    tense: "preterite",
+    forms: { yo: "supe", tú: "supiste", "él/ella": "supo", nosotros: "supimos", "ellos/ellas": "supieron" },
+    exampleByPerson: {
+      yo: { es: "Supe la noticia anoche.", en: "I found out the news last night." },
+      tú: { es: "Tú supiste la respuesta.", en: "You knew the answer." },
+      "él/ella": { es: "Él supo la verdad.", en: "He found out the truth." },
+      nosotros: { es: "Nosotros supimos llegar.", en: "We managed to arrive." },
+      "ellos/ellas": { es: "Ellos supieron entonces.", en: "They knew then." },
+    },
+  },
+  {
+    infinitive: "decir",
+    english: "to say / tell",
+    tense: "preterite",
+    forms: { yo: "dije", tú: "dijiste", "él/ella": "dijo", nosotros: "dijimos", "ellos/ellas": "dijeron" },
+    exampleByPerson: {
+      yo: { es: "Dije la verdad.", en: "I told the truth." },
+      tú: { es: "Tú dijiste mucho.", en: "You said a lot." },
+      "él/ella": { es: "Ella dijo adiós.", en: "She said goodbye." },
+      nosotros: { es: "Nosotros dijimos hola.", en: "We said hello." },
+      "ellos/ellas": { es: "Ellos dijeron secretos.", en: "They told secrets." },
+    },
+  },
+  {
+    infinitive: "venir",
+    english: "to come",
+    tense: "preterite",
+    forms: { yo: "vine", tú: "viniste", "él/ella": "vino", nosotros: "vinimos", "ellos/ellas": "vinieron" },
+    exampleByPerson: {
+      yo: { es: "Vine de Madrid.", en: "I came from Madrid." },
+      tú: { es: "Tú viniste tarde.", en: "You came late." },
+      "él/ella": { es: "Ella vino conmigo.", en: "She came with me." },
+      nosotros: { es: "Nosotros vinimos en coche.", en: "We came by car." },
+      "ellos/ellas": { es: "Ellos vinieron juntos.", en: "They came together." },
+    },
+  },
+  {
+    infinitive: "dar",
+    english: "to give",
+    tense: "preterite",
+    forms: { yo: "di", tú: "diste", "él/ella": "dio", nosotros: "dimos", "ellos/ellas": "dieron" },
+    exampleByPerson: {
+      yo: { es: "Le di un regalo.", en: "I gave him a gift." },
+      tú: { es: "Tú diste tu opinión.", en: "You gave your opinion." },
+      "él/ella": { es: "Él dio las gracias.", en: "He gave thanks." },
+      nosotros: { es: "Nosotros dimos un paseo.", en: "We took a walk." },
+      "ellos/ellas": { es: "Ellas dieron dinero.", en: "They gave money." },
+    },
+  },
+  {
+    infinitive: "ver",
+    english: "to see",
+    tense: "preterite",
+    forms: { yo: "vi", tú: "viste", "él/ella": "vio", nosotros: "vimos", "ellos/ellas": "vieron" },
+    exampleByPerson: {
+      yo: { es: "Vi una película anoche.", en: "I saw a movie last night." },
+      tú: { es: "Tú viste el partido.", en: "You saw the game." },
+      "él/ella": { es: "Ella vio la luna.", en: "She saw the moon." },
+      nosotros: { es: "Nosotros vimos las estrellas.", en: "We saw the stars." },
+      "ellos/ellas": { es: "Ellos vieron el accidente.", en: "They saw the accident." },
+    },
+  },
+  {
+    infinitive: "poner",
+    english: "to put / place",
+    tense: "preterite",
+    forms: { yo: "puse", tú: "pusiste", "él/ella": "puso", nosotros: "pusimos", "ellos/ellas": "pusieron" },
+    exampleByPerson: {
+      yo: { es: "Puse la mesa.", en: "I set the table." },
+      tú: { es: "Tú pusiste música.", en: "You put on music." },
+      "él/ella": { es: "Él puso los libros.", en: "He placed the books." },
+      nosotros: { es: "Nosotros pusimos atención.", en: "We paid attention." },
+      "ellos/ellas": { es: "Ellos pusieron excusas.", en: "They made excuses." },
+    },
+  },
+  {
+    infinitive: "salir",
+    english: "to leave",
+    tense: "preterite",
+    forms: { yo: "salí", tú: "saliste", "él/ella": "salió", nosotros: "salimos", "ellos/ellas": "salieron" },
+    exampleByPerson: {
+      yo: { es: "Salí temprano de casa.", en: "I left home early." },
+      tú: { es: "Tú saliste con amigos.", en: "You went out with friends." },
+      "él/ella": { es: "Ella salió del trabajo.", en: "She left work." },
+      nosotros: { es: "Nosotros salimos juntos.", en: "We went out together." },
+      "ellos/ellas": { es: "Ellos salieron a correr.", en: "They went out running." },
     },
   },
 ];

@@ -1,26 +1,49 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/db/client";
 import { cards, decks, notes } from "@/db/schema";
-import { buildClozeCards } from "@/data/verbs";
+import {
+  buildClozeCards,
+  IRREGULAR_VERBS_PRESENT,
+  IRREGULAR_VERBS_PRETERITE,
+  type Tense,
+} from "@/data/verbs";
 import { newCard } from "@/lib/fsrs";
 
-const DECK_NAME = "Present Indicative — Irregulars";
+const BodySchema = z
+  .object({ tense: z.enum(["present", "preterite"]).optional() })
+  .optional();
 
-export async function POST() {
-  const existing = await db.select().from(decks).where(eq(decks.name, DECK_NAME));
+const DECK_NAMES: Record<Tense, string> = {
+  present: "Present Indicative — Irregulars",
+  preterite: "Preterite — Irregulars",
+};
+
+const TABLES: Record<Tense, typeof IRREGULAR_VERBS_PRESENT> = {
+  present: IRREGULAR_VERBS_PRESENT,
+  preterite: IRREGULAR_VERBS_PRETERITE,
+};
+
+export async function POST(req: Request) {
+  const body = await req.json().catch(() => null);
+  const parsed = BodySchema.safeParse(body);
+  const tense: Tense = parsed.success ? (parsed.data?.tense ?? "present") : "present";
+  const deckName = DECK_NAMES[tense];
+
+  const existing = await db.select().from(decks).where(eq(decks.name, deckName));
   let deckId: string;
   if (existing.length > 0) {
     deckId = existing[0]!.id;
-    return NextResponse.json({ ok: true, deckId, cardsCreated: 0, alreadyImported: true });
+    return NextResponse.json({ ok: true, deckId, tense, cardsCreated: 0, alreadyImported: true });
   }
   const [deck] = await db
     .insert(decks)
-    .values({ name: DECK_NAME, settings: { type: "verbs_present_irregular" } })
+    .values({ name: deckName, settings: { type: `verbs_${tense}_irregular`, tense } })
     .returning();
   deckId = deck!.id;
 
-  const clozes = buildClozeCards();
+  const clozes = buildClozeCards(TABLES[tense]);
   let created = 0;
   for (const c of clozes) {
     const [note] = await db
@@ -37,8 +60,8 @@ export async function POST() {
           person: c.person,
           tense: c.tense,
         },
-        tags: ["verb", "present", c.infinitive],
-        source: "verbs_present_irregular",
+        tags: ["verb", tense, c.infinitive],
+        source: `verbs_${tense}_irregular`,
       })
       .returning();
     if (!note) continue;
@@ -57,5 +80,5 @@ export async function POST() {
     });
     created++;
   }
-  return NextResponse.json({ ok: true, deckId, cardsCreated: created });
+  return NextResponse.json({ ok: true, deckId, tense, cardsCreated: created });
 }

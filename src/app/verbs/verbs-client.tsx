@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 export function VerbsClient({
   alreadyImported,
   cardCount,
+  tense,
 }: {
   alreadyImported: boolean;
   cardCount: number;
+  tense: "present" | "preterite";
 }) {
   const router = useRouter();
   const [imported, setImported] = useState(alreadyImported);
@@ -19,7 +21,11 @@ export function VerbsClient({
 
   async function importDeck() {
     setError(null);
-    const res = await fetch("/api/verbs/import", { method: "POST" });
+    const res = await fetch("/api/verbs/import", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tense }),
+    });
     const data = await res.json();
     if (!res.ok) {
       setError(data.error ?? "import failed");

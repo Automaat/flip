@@ -1,35 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { scoreDictation, type DictationScore } from "@/lib/dictation";
 
-type Item = {
+export type DictateItem = {
   id: string;
   audioUrl: string;
   expected: string;
   translation: string | null;
 };
 
-export function DictateClient() {
-  const [item, setItem] = useState<Item | null>(null);
+export function DictateClient({ item }: { item: DictateItem | null }) {
+  const router = useRouter();
   const [input, setInput] = useState("");
   const [score, setScore] = useState<DictationScore | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setScore(null);
-    setInput("");
-    const res = await fetch("/api/dictate/next", { cache: "no-store" });
-    const data = await res.json();
-    setItem(data.item ?? null);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   const play = useCallback(() => {
     const el = audioRef.current;
@@ -39,10 +26,9 @@ export function DictateClient() {
   }, []);
 
   useEffect(() => {
-    if (item && !score) play();
-  }, [item, score, play]);
+    if (item) play();
+  }, [item, play]);
 
-  if (loading) return <p className="text-center text-zinc-500">Loading…</p>;
   if (!item) {
     return (
       <p className="text-center text-zinc-500">
@@ -52,12 +38,11 @@ export function DictateClient() {
   }
 
   function check() {
-    if (!item) return;
-    setScore(scoreDictation(item.expected, input));
+    setScore(scoreDictation(item!.expected, input));
   }
 
-  function skip() {
-    void load();
+  function next() {
+    startTransition(() => router.refresh());
   }
 
   return (
@@ -93,8 +78,9 @@ export function DictateClient() {
           <div className="flex justify-between gap-2">
             <button
               type="button"
-              onClick={skip}
-              className="rounded-full border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+              onClick={next}
+              disabled={isPending}
+              className="rounded-full border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50"
             >
               Skip
             </button>
@@ -163,8 +149,9 @@ export function DictateClient() {
           </div>
           <button
             type="button"
-            onClick={() => void load()}
-            className="self-end rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-5 py-2 text-sm"
+            onClick={next}
+            disabled={isPending}
+            className="self-end rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-5 py-2 text-sm disabled:opacity-50"
           >
             Next
           </button>

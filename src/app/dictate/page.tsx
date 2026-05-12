@@ -1,9 +1,51 @@
 import Link from "next/link";
-import { DictateClient } from "./dictate-client";
+import { sql } from "drizzle-orm";
+import { db } from "@/db/client";
+import { notes } from "@/db/schema";
+import { DictateClient, type DictateItem } from "./dictate-client";
 
 export const dynamic = "force-dynamic";
 
-export default function DictatePage() {
+type AudioField = { word?: string; example?: string };
+type Fields = {
+  example?: string;
+  sentence?: string;
+  answer?: string;
+  exampleEnglish?: string;
+  sentenceEnglish?: string;
+  audio?: AudioField;
+};
+
+async function fetchNextItem(): Promise<DictateItem | null> {
+  const rows = await db
+    .select({
+      id: notes.id,
+      noteType: notes.noteType,
+      fields: notes.fields,
+    })
+    .from(notes)
+    .where(sql`${notes.fields}->'audio'->>'example' IS NOT NULL`)
+    .orderBy(sql`random()`)
+    .limit(1);
+  if (rows.length === 0) return null;
+  const row = rows[0]!;
+  const f = (row.fields ?? {}) as Fields;
+  const expected =
+    row.noteType === "cloze" && f.sentence && f.answer
+      ? f.sentence.replace(/___/, f.answer)
+      : (f.example ?? "");
+  const audioUrl = f.audio?.example;
+  if (!audioUrl || !expected) return null;
+  return {
+    id: row.id,
+    audioUrl,
+    expected,
+    translation: f.exampleEnglish ?? f.sentenceEnglish ?? null,
+  };
+}
+
+export default async function DictatePage() {
+  const item = await fetchNextItem();
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-12">
       <div className="w-full max-w-md flex flex-col gap-6">
@@ -14,7 +56,7 @@ export default function DictatePage() {
           </p>
         </header>
 
-        <DictateClient />
+        <DictateClient key={item?.id ?? "empty"} item={item} />
 
         <div className="text-center">
           <Link

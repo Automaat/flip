@@ -17,6 +17,7 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:import-vocab": "tsx src/db/import-vocab.ts",
     "audio:gen": "tsx src/db/gen-audio.ts",
+    "audio:pairs": "tsx src/db/gen-pairs-audio.ts",
     "icons:gen": "tsx scripts/gen-icons.ts",
     "test": "vitest run",
     "test:watch": "vitest",

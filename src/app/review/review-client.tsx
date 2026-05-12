@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { matchesAnswer } from "@/lib/cognates";
+import { pickPrompt, shouldPrompt } from "@/lib/prompts";
 
 type Rating = "again" | "hard" | "good" | "easy";
 
@@ -88,20 +89,40 @@ export function ReviewClient({
     if (card?.fields.audio?.example) playExample();
   }, [revealed, card?.fields.audio?.example, playExample]);
 
+  const [deepPrompt, setDeepPrompt] = useState<string | null>(null);
+
   const rate = useCallback(
     async (rating: Rating) => {
       if (!card) return;
       const start = startedAt.current ?? performance.now();
       const durationMs = Math.round(performance.now() - start);
-      await fetch("/api/review/rate", {
+      const res = await fetch("/api/review/rate", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ cardId: card.id, rating, durationMs }),
       });
+      const data = (await res.json().catch(() => null)) as {
+        state?: "new" | "learning" | "review" | "relearning";
+      } | null;
+      const word = card.fields.spanish ?? card.fields.answer ?? "";
+      if (
+        word &&
+        data?.state &&
+        rating !== "again" &&
+        shouldPrompt(data.state)
+      ) {
+        setDeepPrompt(pickPrompt(card.id.charCodeAt(0) ^ Date.now()).text(word));
+        return;
+      }
       startTransition(() => router.refresh());
     },
     [card, router],
   );
+
+  const dismissPrompt = useCallback(() => {
+    setDeepPrompt(null);
+    startTransition(() => router.refresh());
+  }, [router]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -151,6 +172,25 @@ export function ReviewClient({
     const ok = matchesAnswer(typed, card.fields.spanish);
     setTypedResult(ok ? "correct" : "wrong");
     setRevealed(true);
+  }
+
+  if (deepPrompt) {
+    return (
+      <div className="w-full max-w-md flex flex-col items-center gap-6 text-center">
+        <div className="text-xs uppercase tracking-wide text-zinc-500">Reflect</div>
+        <p className="text-2xl text-zinc-900 dark:text-zinc-50">{deepPrompt}</p>
+        <p className="text-xs text-zinc-500">
+          A few seconds of deep processing strengthens the memory more than a quick rating.
+        </p>
+        <button
+          type="button"
+          onClick={dismissPrompt}
+          className="rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-6 py-3 text-sm font-medium"
+        >
+          Done
+        </button>
+      </div>
+    );
   }
 
   return (

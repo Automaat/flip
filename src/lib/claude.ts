@@ -11,6 +11,14 @@ export class ClaudeClient {
   }
 
   async complete(prompt: string, maxTokens = 400): Promise<string> {
+    return this.chat([{ role: "user", content: prompt }], maxTokens);
+  }
+
+  async chat(
+    messages: { role: "user" | "assistant"; content: string }[],
+    maxTokens = 400,
+    system?: string,
+  ): Promise<string> {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -21,7 +29,8 @@ export class ClaudeClient {
       body: JSON.stringify({
         model: this.model,
         max_tokens: maxTokens,
-        messages: [{ role: "user", content: prompt }],
+        ...(system ? { system } : {}),
+        messages,
       }),
     });
     if (!res.ok) {

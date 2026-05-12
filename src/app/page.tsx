@@ -1,16 +1,34 @@
 import Link from "next/link";
-import { gte, sql } from "drizzle-orm";
+import { and, gte, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db/client";
-import { cards, reviewLog, vocabulary } from "@/db/schema";
+import { cards, notes, reviewLog, vocabulary } from "@/db/schema";
 import { computeStreak } from "@/lib/streaks";
+import { bandCoverage } from "@/lib/coverage";
 
 export const dynamic = "force-dynamic";
+
+async function fetchKnownRanks(): Promise<number[]> {
+  // Distinct Spanish words across all notes — joined to vocabulary for rank.
+  const noteWords = await db
+    .selectDistinct({
+      word: sql<string>`lower(${notes.fields}->>'spanish')`.as("word"),
+    })
+    .from(notes)
+    .where(sql`${notes.fields} ? 'spanish'`);
+  const words = noteWords.map((r) => r.word).filter(Boolean);
+  if (words.length === 0) return [];
+  const rows = await db
+    .select({ rank: vocabulary.frequencyRank })
+    .from(vocabulary)
+    .where(and(inArray(vocabulary.word, words), isNotNull(vocabulary.frequencyRank)));
+  return rows.map((r) => r.rank).filter((r): r is number => r !== null);
+}
 
 async function fetchStats() {
   const since = new Date();
   since.setDate(since.getDate() - 365);
 
-  const [cardCounts, vocabCount, dueCount, recentReviews] = await Promise.all([
+  const [cardCounts, vocabCount, dueCount, recentReviews, knownRanks] = await Promise.all([
     db
       .select({ state: cards.state, count: sql<number>`count(*)::int` })
       .from(cards)
@@ -28,11 +46,13 @@ async function fetchStats() {
       .select({ at: reviewLog.reviewedAt })
       .from(reviewLog)
       .where(gte(reviewLog.reviewedAt, since)),
+    fetchKnownRanks(),
   ]);
   const states = { new: 0, learning: 0, review: 0, relearning: 0 };
   for (const r of cardCounts) states[r.state] = r.count;
   const streak = computeStreak(recentReviews.map((r) => r.at));
-  return { states, vocab: vocabCount, due: dueCount, streak };
+  const coverage = bandCoverage(knownRanks, Math.min(vocabCount, 5000));
+  return { states, vocab: vocabCount, due: dueCount, streak, coverage };
 }
 
 export default async function Home() {
@@ -69,12 +89,32 @@ export default async function Home() {
           <Stat label="review" value={stats.states.review} accent="text-sky-500" />
         </div>
 
-        <div className="text-xs text-zinc-500">
-          vocab database:{" "}
-          <span className="text-zinc-900 dark:text-zinc-100 font-semibold">
-            {stats.vocab.toLocaleString()}
-          </span>{" "}
-          words
+        <div className="w-full space-y-2">
+          <div className="flex items-baseline justify-between text-xs text-zinc-500">
+            <span>frequency coverage</span>
+            <span>
+              <span className="text-zinc-900 dark:text-zinc-100 font-semibold">
+                {stats.coverage.totalKnown}
+              </span>{" "}
+              / {stats.vocab.toLocaleString()}
+            </span>
+          </div>
+          <div className="grid grid-cols-5 gap-1">
+            {stats.coverage.bands.map((b) => (
+              <div key={b.band} className="flex flex-col items-center">
+                <div
+                  className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden"
+                  title={`${b.band}: ${b.covered}/${b.total}`}
+                >
+                  <div
+                    className="h-full bg-emerald-500"
+                    style={{ width: `${b.percent}%` }}
+                  />
+                </div>
+                <span className="mt-1 text-[10px] text-zinc-400">{b.band.split("–")[0]}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex gap-3">

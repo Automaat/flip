@@ -41,6 +41,9 @@ fi
 cd /app
 if [ -z "$(ls -A public/audio 2>/dev/null)" ]; then
   echo "[entrypoint] generating audio (first run; ~5 min)"
+  # gen-audio writes to cwd/public/audio; ensure it's the bind-mounted dir.
+  rm -rf /app-init/public
+  ln -sfn /app/public /app-init/public
   cd /app-init
   ./node_modules/.bin/tsx src/db/gen-audio.ts \
     || echo "[entrypoint] audio gen failed; app starts without it"

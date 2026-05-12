@@ -19,6 +19,12 @@ export type ReviewCard = {
     exampleEnglish?: string;
     gender?: "m" | "f";
     englishTrap?: string;
+    sentence?: string;
+    answer?: string;
+    sentenceEnglish?: string;
+    infinitive?: string;
+    person?: string;
+    tense?: string;
     audio?: { word?: string; example?: string };
   };
 };
@@ -130,56 +136,17 @@ export function ReviewClient({ card, counts }: { card: ReviewCard | null; counts
       </div>
 
       <div className="min-h-[12rem] flex flex-col items-center justify-center gap-3 text-center">
-        <div className="flex items-center gap-3">
-          <div className="text-5xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {genderArticle && <span className={genderColor}>{genderArticle} </span>}
-            {card.fields.spanish}
-          </div>
-          {card.fields.audio?.word && (
-            <button
-              type="button"
-              onClick={playWord}
-              aria-label="Play pronunciation"
-              className="text-2xl text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-            >
-              🔊
-            </button>
-          )}
-        </div>
-        {revealed && (
-          <>
-            {card.noteType === "false_friend" && card.fields.englishTrap && (
-              <div className="text-sm text-rose-500">
-                not <span className="line-through">{card.fields.englishTrap}</span>
-              </div>
-            )}
-            <div className="text-xl text-zinc-600 dark:text-zinc-300">
-              {card.noteType === "false_friend" && (
-                <span className="text-emerald-500">= </span>
-              )}
-              {card.fields.english}
-            </div>
-            {card.fields.example && (
-              <div className="mt-4 text-sm text-zinc-500 dark:text-zinc-400 italic flex items-center justify-center gap-2">
-                <span>&ldquo;{card.fields.example}&rdquo;</span>
-                {card.fields.audio?.example && (
-                  <button
-                    type="button"
-                    onClick={playExample}
-                    aria-label="Play example"
-                    className="not-italic text-base hover:text-zinc-900 dark:hover:text-zinc-100"
-                  >
-                    🔊
-                  </button>
-                )}
-              </div>
-            )}
-            {card.fields.exampleEnglish && (
-              <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                {card.fields.exampleEnglish}
-              </div>
-            )}
-          </>
+        {card.noteType === "cloze" && card.fields.sentence ? (
+          <ClozeBody card={card} revealed={revealed} />
+        ) : (
+          <VocabBody
+            card={card}
+            revealed={revealed}
+            genderArticle={genderArticle}
+            genderColor={genderColor}
+            playWord={playWord}
+            playExample={playExample}
+          />
         )}
       </div>
 
@@ -216,6 +183,105 @@ export function ReviewClient({ card, counts }: { card: ReviewCard | null; counts
         </div>
       )}
     </div>
+  );
+}
+
+function ClozeBody({ card, revealed }: { card: ReviewCard; revealed: boolean }) {
+  const sentence = card.fields.sentence ?? "";
+  const answer = card.fields.answer ?? "";
+  const parts = sentence.split("___");
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="text-xs uppercase tracking-wide text-zinc-500">
+        {card.fields.infinitive} · {card.fields.person} · {card.fields.tense}
+      </div>
+      <div className="text-3xl font-medium text-zinc-900 dark:text-zinc-50">
+        {parts.map((part, i) => (
+          <span key={`p${i}`}>
+            {part}
+            {i < parts.length - 1 &&
+              (revealed ? (
+                <span className="text-emerald-500 font-semibold">{answer}</span>
+              ) : (
+                <span className="text-zinc-400">___</span>
+              ))}
+          </span>
+        ))}
+      </div>
+      {revealed && card.fields.sentenceEnglish && (
+        <div className="text-sm text-zinc-500 italic">{card.fields.sentenceEnglish}</div>
+      )}
+    </div>
+  );
+}
+
+function VocabBody({
+  card,
+  revealed,
+  genderArticle,
+  genderColor,
+  playWord,
+  playExample,
+}: {
+  card: ReviewCard;
+  revealed: boolean;
+  genderArticle: string | null;
+  genderColor: string;
+  playWord: () => void;
+  playExample: () => void;
+}) {
+  return (
+    <>
+      <div className="flex items-center gap-3">
+        <div className="text-5xl font-semibold text-zinc-900 dark:text-zinc-50">
+          {genderArticle && <span className={genderColor}>{genderArticle} </span>}
+          {card.fields.spanish}
+        </div>
+        {card.fields.audio?.word && (
+          <button
+            type="button"
+            onClick={playWord}
+            aria-label="Play pronunciation"
+            className="text-2xl text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+          >
+            🔊
+          </button>
+        )}
+      </div>
+      {revealed && (
+        <>
+          {card.noteType === "false_friend" && card.fields.englishTrap && (
+            <div className="text-sm text-rose-500">
+              not <span className="line-through">{card.fields.englishTrap}</span>
+            </div>
+          )}
+          <div className="text-xl text-zinc-600 dark:text-zinc-300">
+            {card.noteType === "false_friend" && <span className="text-emerald-500">= </span>}
+            {card.fields.english}
+          </div>
+          {card.fields.example && (
+            <div className="mt-4 text-sm text-zinc-500 dark:text-zinc-400 italic flex items-center justify-center gap-2">
+              <span>&ldquo;{card.fields.example}&rdquo;</span>
+              {card.fields.audio?.example && (
+                <button
+                  type="button"
+                  onClick={playExample}
+                  aria-label="Play example"
+                  className="not-italic text-base hover:text-zinc-900 dark:hover:text-zinc-100"
+                >
+                  🔊
+                </button>
+              )}
+            </div>
+          )}
+          {card.fields.exampleEnglish && (
+            <div className="text-sm text-zinc-500 dark:text-zinc-400">
+              {card.fields.exampleEnglish}
+            </div>
+          )}
+        </>
+      )}
+    </>
   );
 }
 

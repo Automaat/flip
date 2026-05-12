@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { COGNATE_RULES, findRule } from "./cognate-rules";
 
+const stripAccents = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+
 describe("COGNATE_RULES", () => {
+  it("has the FEATURES.md target of 24 rules", () => {
+    expect(COGNATE_RULES.length).toBeGreaterThanOrEqual(24);
+  });
+
   it("has ids that are unique", () => {
     const ids = COGNATE_RULES.map((r) => r.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -16,12 +22,13 @@ describe("COGNATE_RULES", () => {
 
   it("Spanish entries match the rule's suffix", () => {
     for (const r of COGNATE_RULES) {
-      const suffix = r.esSuffix.replace(/^-/, "");
+      const suffix = stripAccents(r.esSuffix.replace(/^-/, "").toLowerCase());
       const items = [...r.examples, ...r.quiz];
       for (const entry of items) {
+        const normalized = stripAccents(entry.es.toLowerCase());
         expect(
-          entry.es.toLowerCase().endsWith(suffix),
-          `${r.id}: '${entry.es}' should end with '${suffix}'`,
+          normalized.endsWith(suffix),
+          `${r.id}: '${entry.es}' should end with '${r.esSuffix}'`,
         ).toBe(true);
       }
     }

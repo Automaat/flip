@@ -1,0 +1,36 @@
+[tools]
+node = "22"
+pnpm = "9"
+
+[env]
+_.file = [".env", ".env.local"]
+PORT = "3000"
+HOST = "0.0.0.0"
+
+[tasks.dev]
+description = "Run dev server on home network"
+run = "pnpm dev"
+
+[tasks.build]
+description = "Build for production"
+run = "pnpm build"
+
+[tasks.start]
+description = "Start production server"
+run = "pnpm start"
+
+[tasks.lint]
+description = "Lint code"
+run = "pnpm lint"
+
+[tasks.typecheck]
+description = "Typecheck"
+run = "pnpm typecheck"
+
+[tasks.db-push]
+description = "Push schema to SQLite"
+run = "pnpm drizzle-kit push"
+
+[tasks.db-studio]
+description = "Open Drizzle studio"
+run = "pnpm drizzle-kit studio"

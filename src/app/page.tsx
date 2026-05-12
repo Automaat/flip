@@ -1,12 +1,16 @@
 import Link from "next/link";
-import { sql } from "drizzle-orm";
+import { gte, sql } from "drizzle-orm";
 import { db } from "@/db/client";
-import { cards, vocabulary } from "@/db/schema";
+import { cards, reviewLog, vocabulary } from "@/db/schema";
+import { computeStreak } from "@/lib/streaks";
 
 export const dynamic = "force-dynamic";
 
 async function fetchStats() {
-  const [cardCounts, vocabCount, dueCount] = await Promise.all([
+  const since = new Date();
+  since.setDate(since.getDate() - 365);
+
+  const [cardCounts, vocabCount, dueCount, recentReviews] = await Promise.all([
     db
       .select({ state: cards.state, count: sql<number>`count(*)::int` })
       .from(cards)
@@ -20,10 +24,15 @@ async function fetchStats() {
       .from(cards)
       .where(sql`${cards.state} = 'new' or ${cards.due} <= now()`)
       .then((r) => r[0]?.count ?? 0),
+    db
+      .select({ at: reviewLog.reviewedAt })
+      .from(reviewLog)
+      .where(gte(reviewLog.reviewedAt, since)),
   ]);
   const states = { new: 0, learning: 0, review: 0, relearning: 0 };
   for (const r of cardCounts) states[r.state] = r.count;
-  return { states, vocab: vocabCount, due: dueCount };
+  const streak = computeStreak(recentReviews.map((r) => r.at));
+  return { states, vocab: vocabCount, due: dueCount, streak };
 }
 
 export default async function Home() {
@@ -38,6 +47,19 @@ export default async function Home() {
           <p className="mt-2 text-zinc-600 dark:text-zinc-400 text-sm">
             FSRS spaced repetition for Spanish.
           </p>
+        </div>
+
+        <div className="flex items-center justify-center gap-2 text-2xl">
+          <span aria-label="streak" title="Current streak">
+            🔥
+          </span>
+          <span className="font-bold text-zinc-900 dark:text-zinc-50">{stats.streak.current}</span>
+          <span className="text-sm text-zinc-500">
+            day{stats.streak.current === 1 ? "" : "s"}
+            {stats.streak.longest > stats.streak.current && (
+              <> · best {stats.streak.longest}</>
+            )}
+          </span>
         </div>
 
         <div className="grid grid-cols-4 gap-2 w-full text-center">

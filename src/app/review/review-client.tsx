@@ -29,6 +29,7 @@ export type ReviewCard = {
     person?: string;
     tense?: string;
     audio?: { word?: string; example?: string };
+    mnemonic?: { keyword: string; scene: string };
   };
 };
 
@@ -420,6 +421,16 @@ function VocabBody({
           ) : (
             <span className="text-rose-500">✗ you typed: {typedAnswer}</span>
           )}
+        </div>
+      )}
+      {revealed && card.fields.mnemonic && (
+        <div className="mt-3 rounded-lg bg-amber-500/10 border border-amber-500/40 p-3 text-left text-xs">
+          <div className="font-semibold text-amber-600 dark:text-amber-400">
+            ✨ {card.fields.mnemonic.keyword}
+          </div>
+          <p className="mt-1 text-zinc-600 dark:text-zinc-300 italic">
+            {card.fields.mnemonic.scene}
+          </p>
         </div>
       )}
       {revealed && (

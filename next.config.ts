@@ -4,6 +4,7 @@ import path from "node:path";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  output: "standalone",
   turbopack: {
     root: path.resolve(__dirname),
   },

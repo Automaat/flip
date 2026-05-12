@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.github
+.cache
+.claude
+.env*
+!.env.example
+README.md
+FEATURES.md
+tests
+playwright-report
+test-results
+*.log
+postgres-data
+public/audio/*.mp3

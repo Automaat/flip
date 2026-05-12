@@ -226,6 +226,10 @@ export function ReviewClient({
         )}
       </div>
 
+      {revealed && card.fields.spanish && card.reps >= 5 && (
+        <ContextEscalation card={card} />
+      )}
+
       {card.fields.audio?.word && (
         <audio ref={wordAudioRef} src={card.fields.audio.word} preload="auto" />
       )}
@@ -283,6 +287,61 @@ export function ReviewClient({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function ContextEscalation({ card }: { card: ReviewCard }) {
+  const [pending, setPending] = useState(false);
+  const [examples, setExamples] = useState<{ es: string; en: string }[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load() {
+    setPending(true);
+    setError(null);
+    const res = await fetch("/api/examples", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        spanish: card.fields.spanish,
+        english: card.fields.english,
+        level: "A2",
+      }),
+    });
+    setPending(false);
+    if (!res.ok) {
+      setError(
+        res.status === 503
+          ? "Set ANTHROPIC_API_KEY to enable."
+          : `error ${res.status}`,
+      );
+      return;
+    }
+    const body = (await res.json()) as { examples: { es: string; en: string }[] };
+    setExamples(body.examples);
+  }
+
+  if (!examples && !error) {
+    return (
+      <button
+        type="button"
+        onClick={load}
+        disabled={pending}
+        className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 underline disabled:opacity-50"
+      >
+        {pending ? "thinking…" : "✨ more examples"}
+      </button>
+    );
+  }
+  if (error) return <p className="text-xs text-rose-500">{error}</p>;
+  return (
+    <div className="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 p-3 text-xs space-y-2">
+      {examples!.map((e, i) => (
+        <div key={i}>
+          <p className="text-zinc-900 dark:text-zinc-100">{e.es}</p>
+          <p className="text-zinc-500 italic">{e.en}</p>
+        </div>
+      ))}
     </div>
   );
 }

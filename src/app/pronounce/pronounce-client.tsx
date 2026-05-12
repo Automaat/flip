@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { scoreDictation, type DictationScore } from "@/lib/dictation";
 
@@ -41,16 +41,12 @@ export function PronounceClient({ item }: { item: PronounceItem | null }) {
   const router = useRouter();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recRef = useRef<SpeechRecognitionLike | null>(null);
-  const [supported, setSupported] = useState<boolean | null>(null);
+  const supported = typeof window !== "undefined" && !!getSpeechRecognition();
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [score, setScore] = useState<DictationScore | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    setSupported(!!getSpeechRecognition());
-  }, []);
 
   if (!item) {
     return (
@@ -121,7 +117,7 @@ export function PronounceClient({ item }: { item: PronounceItem | null }) {
           disabled={!supported || listening}
           className="rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-5 py-2 text-sm disabled:opacity-50"
         >
-          {listening ? "Listening…" : supported === false ? "Unsupported" : "🎙 Record"}
+          {listening ? "Listening…" : supported ? "🎙 Record" : "Unsupported"}
         </button>
       </div>
       <audio ref={audioRef} src={item.audioUrl} preload="auto" />

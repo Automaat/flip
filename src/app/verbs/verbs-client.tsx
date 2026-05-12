@@ -11,7 +11,7 @@ export function VerbsClient({
 }: {
   alreadyImported: boolean;
   cardCount: number;
-  tense: "present" | "preterite";
+  tense: "present" | "preterite" | "imperfect";
 }) {
   const router = useRouter();
   const [imported, setImported] = useState(alreadyImported);

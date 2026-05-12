@@ -5,6 +5,7 @@ import { db } from "@/db/client";
 import { cards, decks, notes } from "@/db/schema";
 import {
   buildClozeCards,
+  IRREGULAR_VERBS_IMPERFECT,
   IRREGULAR_VERBS_PRESENT,
   IRREGULAR_VERBS_PRETERITE,
   type Tense,
@@ -12,17 +13,19 @@ import {
 import { newCard } from "@/lib/fsrs";
 
 const BodySchema = z
-  .object({ tense: z.enum(["present", "preterite"]).optional() })
+  .object({ tense: z.enum(["present", "preterite", "imperfect"]).optional() })
   .optional();
 
 const DECK_NAMES: Record<Tense, string> = {
   present: "Present Indicative — Irregulars",
   preterite: "Preterite — Irregulars",
+  imperfect: "Imperfect — Irregulars",
 };
 
 const TABLES: Record<Tense, typeof IRREGULAR_VERBS_PRESENT> = {
   present: IRREGULAR_VERBS_PRESENT,
   preterite: IRREGULAR_VERBS_PRETERITE,
+  imperfect: IRREGULAR_VERBS_IMPERFECT,
 };
 
 export async function POST(req: Request) {

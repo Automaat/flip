@@ -3,6 +3,7 @@ import { inArray } from "drizzle-orm";
 import { db } from "@/db/client";
 import { decks } from "@/db/schema";
 import {
+  IRREGULAR_VERBS_IMPERFECT,
   IRREGULAR_VERBS_PRESENT,
   IRREGULAR_VERBS_PRETERITE,
   PERSONS,
@@ -16,15 +17,26 @@ export const dynamic = "force-dynamic";
 const DECK_NAMES: Record<Tense, string> = {
   present: "Present Indicative — Irregulars",
   preterite: "Preterite — Irregulars",
+  imperfect: "Imperfect — Irregulars",
 };
 
 type Props = { searchParams: Promise<{ tense?: string }> };
 
+function parseTense(raw: string | undefined): Tense {
+  if (raw === "preterite" || raw === "imperfect") return raw;
+  return "present";
+}
+
+const TABLES: Record<Tense, VerbConjugation[]> = {
+  present: IRREGULAR_VERBS_PRESENT,
+  preterite: IRREGULAR_VERBS_PRETERITE,
+  imperfect: IRREGULAR_VERBS_IMPERFECT,
+};
+
 export default async function VerbsPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const tense: Tense = sp?.tense === "preterite" ? "preterite" : "present";
-  const table: VerbConjugation[] =
-    tense === "preterite" ? IRREGULAR_VERBS_PRETERITE : IRREGULAR_VERBS_PRESENT;
+  const tense: Tense = parseTense(sp?.tense);
+  const table: VerbConjugation[] = TABLES[tense];
 
   const importedDecks = await db
     .select({ name: decks.name })
@@ -43,7 +55,7 @@ export default async function VerbsPage({ searchParams }: Props) {
           </p>
         </header>
 
-        <nav className="flex justify-center gap-2">
+        <nav className="flex flex-wrap justify-center gap-2">
           <TenseLink
             href={{ pathname: "/verbs", query: { tense: "present" } }}
             active={tense === "present"}
@@ -53,6 +65,11 @@ export default async function VerbsPage({ searchParams }: Props) {
             href={{ pathname: "/verbs", query: { tense: "preterite" } }}
             active={tense === "preterite"}
             label="Preterite"
+          />
+          <TenseLink
+            href={{ pathname: "/verbs", query: { tense: "imperfect" } }}
+            active={tense === "imperfect"}
+            label="Imperfect"
           />
         </nav>
 

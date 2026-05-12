@@ -1,5 +1,5 @@
 export type Person = "yo" | "tú" | "él/ella" | "nosotros" | "ellos/ellas";
-export type Tense = "present" | "preterite";
+export type Tense = "present" | "preterite" | "imperfect";
 
 /** Latin-American 5-person paradigm (no vosotros). */
 export const PERSONS: Person[] = ["yo", "tú", "él/ella", "nosotros", "ellos/ellas"];
@@ -378,6 +378,191 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
       "él/ella": { es: "Ella salió del trabajo.", en: "She left work." },
       nosotros: { es: "Nosotros salimos juntos.", en: "We went out together." },
       "ellos/ellas": { es: "Ellos salieron a correr.", en: "They went out running." },
+    },
+  },
+];
+
+export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
+  {
+    infinitive: "ser",
+    english: "to be (essence)",
+    tense: "imperfect",
+    forms: { yo: "era", tú: "eras", "él/ella": "era", nosotros: "éramos", "ellos/ellas": "eran" },
+    exampleByPerson: {
+      yo: { es: "Cuando era niño.", en: "When I was a child." },
+      tú: { es: "Tú eras muy alto.", en: "You were very tall." },
+      "él/ella": { es: "Ella era simpática.", en: "She was friendly." },
+      nosotros: { es: "Nosotros éramos amigos.", en: "We were friends." },
+      "ellos/ellas": { es: "Ellos eran hermanos.", en: "They were brothers." },
+    },
+  },
+  {
+    infinitive: "estar",
+    english: "to be (state/location)",
+    tense: "imperfect",
+    forms: { yo: "estaba", tú: "estabas", "él/ella": "estaba", nosotros: "estábamos", "ellos/ellas": "estaban" },
+    exampleByPerson: {
+      yo: { es: "Estaba cansado ayer.", en: "I was tired yesterday." },
+      tú: { es: "Tú estabas en casa.", en: "You were at home." },
+      "él/ella": { es: "Él estaba enfermo.", en: "He was sick." },
+      nosotros: { es: "Estábamos felices.", en: "We were happy." },
+      "ellos/ellas": { es: "Ellos estaban allí.", en: "They were there." },
+    },
+  },
+  {
+    infinitive: "ir",
+    english: "to go",
+    tense: "imperfect",
+    forms: { yo: "iba", tú: "ibas", "él/ella": "iba", nosotros: "íbamos", "ellos/ellas": "iban" },
+    exampleByPerson: {
+      yo: { es: "Iba al colegio cada día.", en: "I used to go to school every day." },
+      tú: { es: "Tú ibas a verla.", en: "You used to go see her." },
+      "él/ella": { es: "Ella iba al gimnasio.", en: "She used to go to the gym." },
+      nosotros: { es: "Íbamos al parque.", en: "We used to go to the park." },
+      "ellos/ellas": { es: "Ellos iban en bici.", en: "They used to go by bike." },
+    },
+  },
+  {
+    infinitive: "tener",
+    english: "to have",
+    tense: "imperfect",
+    forms: { yo: "tenía", tú: "tenías", "él/ella": "tenía", nosotros: "teníamos", "ellos/ellas": "tenían" },
+    exampleByPerson: {
+      yo: { es: "Tenía un perro de niño.", en: "I had a dog as a kid." },
+      tú: { es: "Tú tenías mucha paciencia.", en: "You had a lot of patience." },
+      "él/ella": { es: "Él tenía suerte siempre.", en: "He was always lucky." },
+      nosotros: { es: "Teníamos una casa grande.", en: "We had a big house." },
+      "ellos/ellas": { es: "Ellos tenían hijos jóvenes.", en: "They had young kids." },
+    },
+  },
+  {
+    infinitive: "hacer",
+    english: "to do / to make",
+    tense: "imperfect",
+    forms: { yo: "hacía", tú: "hacías", "él/ella": "hacía", nosotros: "hacíamos", "ellos/ellas": "hacían" },
+    exampleByPerson: {
+      yo: { es: "Hacía deporte cada mañana.", en: "I used to exercise every morning." },
+      tú: { es: "Tú hacías la cena.", en: "You used to make dinner." },
+      "él/ella": { es: "Ella hacía pasteles.", en: "She used to make cakes." },
+      nosotros: { es: "Hacíamos planes juntos.", en: "We used to make plans together." },
+      "ellos/ellas": { es: "Ellos hacían ruido.", en: "They used to make noise." },
+    },
+  },
+  {
+    infinitive: "poder",
+    english: "to be able / could",
+    tense: "imperfect",
+    forms: { yo: "podía", tú: "podías", "él/ella": "podía", nosotros: "podíamos", "ellos/ellas": "podían" },
+    exampleByPerson: {
+      yo: { es: "Podía cantar muy bien.", en: "I used to be able to sing well." },
+      tú: { es: "Tú podías ayudar.", en: "You used to be able to help." },
+      "él/ella": { es: "Él podía correr rápido.", en: "He could run fast." },
+      nosotros: { es: "Podíamos verlo todo.", en: "We could see everything." },
+      "ellos/ellas": { es: "Ellas podían venir.", en: "They could come." },
+    },
+  },
+  {
+    infinitive: "querer",
+    english: "to want / love",
+    tense: "imperfect",
+    forms: { yo: "quería", tú: "querías", "él/ella": "quería", nosotros: "queríamos", "ellos/ellas": "querían" },
+    exampleByPerson: {
+      yo: { es: "Quería ser piloto.", en: "I wanted to be a pilot." },
+      tú: { es: "Tú querías salir.", en: "You wanted to go out." },
+      "él/ella": { es: "Ella quería viajar.", en: "She wanted to travel." },
+      nosotros: { es: "Queríamos quedarnos.", en: "We wanted to stay." },
+      "ellos/ellas": { es: "Ellos querían dormir.", en: "They wanted to sleep." },
+    },
+  },
+  {
+    infinitive: "saber",
+    english: "to know (facts)",
+    tense: "imperfect",
+    forms: { yo: "sabía", tú: "sabías", "él/ella": "sabía", nosotros: "sabíamos", "ellos/ellas": "sabían" },
+    exampleByPerson: {
+      yo: { es: "Sabía la respuesta de memoria.", en: "I knew the answer by heart." },
+      tú: { es: "Tú sabías la ruta.", en: "You knew the route." },
+      "él/ella": { es: "Él sabía nadar.", en: "He knew how to swim." },
+      nosotros: { es: "Sabíamos toda la historia.", en: "We knew the whole story." },
+      "ellos/ellas": { es: "Ellos sabían mucho.", en: "They knew a lot." },
+    },
+  },
+  {
+    infinitive: "decir",
+    english: "to say / tell",
+    tense: "imperfect",
+    forms: { yo: "decía", tú: "decías", "él/ella": "decía", nosotros: "decíamos", "ellos/ellas": "decían" },
+    exampleByPerson: {
+      yo: { es: "Decía siempre la verdad.", en: "I always told the truth." },
+      tú: { es: "Tú decías cosas raras.", en: "You used to say weird things." },
+      "él/ella": { es: "Él decía hola a todos.", en: "He used to say hi to everyone." },
+      nosotros: { es: "Decíamos buenos días.", en: "We used to say good morning." },
+      "ellos/ellas": { es: "Ellas decían adiós.", en: "They used to say goodbye." },
+    },
+  },
+  {
+    infinitive: "venir",
+    english: "to come",
+    tense: "imperfect",
+    forms: { yo: "venía", tú: "venías", "él/ella": "venía", nosotros: "veníamos", "ellos/ellas": "venían" },
+    exampleByPerson: {
+      yo: { es: "Venía cada verano.", en: "I used to come every summer." },
+      tú: { es: "Tú venías con tu padre.", en: "You used to come with your dad." },
+      "él/ella": { es: "Ella venía sola.", en: "She used to come alone." },
+      nosotros: { es: "Veníamos los domingos.", en: "We used to come on Sundays." },
+      "ellos/ellas": { es: "Ellos venían tarde.", en: "They used to come late." },
+    },
+  },
+  {
+    infinitive: "dar",
+    english: "to give",
+    tense: "imperfect",
+    forms: { yo: "daba", tú: "dabas", "él/ella": "daba", nosotros: "dábamos", "ellos/ellas": "daban" },
+    exampleByPerson: {
+      yo: { es: "Daba clases de inglés.", en: "I used to teach English." },
+      tú: { es: "Tú dabas buenos consejos.", en: "You used to give good advice." },
+      "él/ella": { es: "Él daba propinas.", en: "He used to give tips." },
+      nosotros: { es: "Dábamos paseos largos.", en: "We used to take long walks." },
+      "ellos/ellas": { es: "Ellos daban discursos.", en: "They used to give speeches." },
+    },
+  },
+  {
+    infinitive: "ver",
+    english: "to see",
+    tense: "imperfect",
+    forms: { yo: "veía", tú: "veías", "él/ella": "veía", nosotros: "veíamos", "ellos/ellas": "veían" },
+    exampleByPerson: {
+      yo: { es: "Veía películas los viernes.", en: "I used to watch movies on Fridays." },
+      tú: { es: "Tú veías el atardecer.", en: "You used to watch the sunset." },
+      "él/ella": { es: "Ella veía a sus padres.", en: "She used to see her parents." },
+      nosotros: { es: "Veíamos televisión juntos.", en: "We used to watch TV together." },
+      "ellos/ellas": { es: "Ellos veían el partido.", en: "They used to watch the game." },
+    },
+  },
+  {
+    infinitive: "poner",
+    english: "to put / place",
+    tense: "imperfect",
+    forms: { yo: "ponía", tú: "ponías", "él/ella": "ponía", nosotros: "poníamos", "ellos/ellas": "ponían" },
+    exampleByPerson: {
+      yo: { es: "Ponía música por la mañana.", en: "I used to play music in the morning." },
+      tú: { es: "Tú ponías la mesa.", en: "You used to set the table." },
+      "él/ella": { es: "Él ponía atención en clase.", en: "He used to pay attention in class." },
+      nosotros: { es: "Poníamos los libros allí.", en: "We used to put the books there." },
+      "ellos/ellas": { es: "Ellas ponían flores frescas.", en: "They used to put fresh flowers." },
+    },
+  },
+  {
+    infinitive: "salir",
+    english: "to leave / go out",
+    tense: "imperfect",
+    forms: { yo: "salía", tú: "salías", "él/ella": "salía", nosotros: "salíamos", "ellos/ellas": "salían" },
+    exampleByPerson: {
+      yo: { es: "Salía a correr cada tarde.", en: "I used to go running every afternoon." },
+      tú: { es: "Tú salías con amigos.", en: "You used to go out with friends." },
+      "él/ella": { es: "Ella salía temprano.", en: "She used to leave early." },
+      nosotros: { es: "Salíamos en bicicleta.", en: "We used to go out by bike." },
+      "ellos/ellas": { es: "Ellos salían a bailar.", en: "They used to go out dancing." },
     },
   },
 ];

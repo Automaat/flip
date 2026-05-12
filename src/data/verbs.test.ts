@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  IRREGULAR_VERBS_IMPERFECT,
   IRREGULAR_VERBS_PRESENT,
   IRREGULAR_VERBS_PRETERITE,
   PERSONS,
@@ -9,6 +10,7 @@ import {
 const TABLES = {
   present: IRREGULAR_VERBS_PRESENT,
   preterite: IRREGULAR_VERBS_PRETERITE,
+  imperfect: IRREGULAR_VERBS_IMPERFECT,
 };
 
 const EXPECTED_INFINITIVES = [
@@ -71,6 +73,12 @@ describe("buildClozeCards", () => {
   it("preterite cards have tense='preterite'", () => {
     const cards = buildClozeCards(IRREGULAR_VERBS_PRETERITE);
     expect(cards.every((c) => c.tense === "preterite")).toBe(true);
+  });
+
+  it("imperfect cards have tense='imperfect' and count to 70", () => {
+    const cards = buildClozeCards(IRREGULAR_VERBS_IMPERFECT);
+    expect(cards.length).toBe(70);
+    expect(cards.every((c) => c.tense === "imperfect")).toBe(true);
   });
 
   it("each card has ___ in the sentence and answer not in sentence", () => {

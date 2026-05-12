@@ -35,6 +35,20 @@ test("verbs preterite tab shows preterite forms", async ({ page }) => {
   await expect(page.getByText("tuvo", { exact: true })).toBeVisible();
 });
 
+test("import API creates verb deck (imperfect)", async ({ request }) => {
+  const res = await request.post("/api/verbs/import", { data: { tense: "imperfect" } });
+  expect(res.ok()).toBeTruthy();
+  const body = await res.json();
+  expect(body.ok).toBe(true);
+  expect(body.tense).toBe("imperfect");
+});
+
+test("verbs imperfect tab shows imperfect forms", async ({ page }) => {
+  await page.goto("/verbs?tense=imperfect");
+  await expect(page.getByText("era", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("tenía", { exact: true }).first()).toBeVisible();
+});
+
 test("home page links to verbs", async ({ page }) => {
   await page.goto("/");
   const link = page.getByRole("link", { name: "Verbs" });

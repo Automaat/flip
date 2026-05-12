@@ -19,6 +19,7 @@ const NAV_LINKS = [
   { href: "/pairs", label: "Pairs" },
   { href: "/pronounce", label: "Pronounce" },
   { href: "/reader", label: "Reader" },
+  { href: "/import", label: "Import" },
   { href: "/stats", label: "Stats" },
   { href: "/etymology", label: "Etymology" },
   { href: "/construct", label: "Construct" },

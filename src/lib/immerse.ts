@@ -10,6 +10,7 @@ const TRANSLATIONS: Record<string, string> = {
   Pairs: "Pares",
   Pronounce: "Pronunciar",
   Reader: "Lector",
+  Import: "Importar",
   Stats: "Estadísticas",
   Etymology: "Etimología",
   Construct: "Construir",

@@ -20,9 +20,10 @@ type SpeechRecognitionLike = {
   continuous: boolean;
   start: () => void;
   stop: () => void;
-  onresult: ((e: { results: ArrayLike<ArrayLike<RecognitionResult>> }) => void) | null;
-  onerror: ((e: { error?: string }) => void) | null;
-  onend: (() => void) | null;
+  addEventListener: (
+    type: string,
+    listener: (e: { results?: ArrayLike<ArrayLike<RecognitionResult>>; error?: string }) => void,
+  ) => void;
 };
 
 type SpeechCtor = new () => SpeechRecognitionLike;
@@ -80,13 +81,15 @@ export function PronounceClient({ item }: { item: PronounceItem | null }) {
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     rec.continuous = false;
-    rec.onresult = (e) => {
-      const best = e.results[0]?.[0]?.transcript ?? "";
+    rec.addEventListener("result", (e) => {
+      const best = e.results?.[0]?.[0]?.transcript ?? "";
       setTranscript(best);
       setScore(scoreDictation(item!.expected, best));
-    };
-    rec.onerror = (e) => setError(e.error ? `speech error: ${e.error}` : "speech error");
-    rec.onend = () => setListening(false);
+    });
+    rec.addEventListener("error", (e) =>
+      setError(e.error ? `speech error: ${e.error}` : "speech error"),
+    );
+    rec.addEventListener("end", () => setListening(false));
     recRef.current = rec;
     setListening(true);
     rec.start();

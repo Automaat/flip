@@ -7,12 +7,41 @@ _.file = [".env", ".env.local"]
 PORT = "3000"
 HOST = "0.0.0.0"
 
+[tasks."db:up"]
+description = "Start Postgres via docker-compose"
+run = "docker compose up -d"
+
+[tasks."db:wait"]
+description = "Wait for Postgres to accept connections"
+depends = ["db:up"]
+run = "until docker compose exec -T postgres pg_isready -U flip -d flip >/dev/null 2>&1; do sleep 1; done"
+
+[tasks."db:migrate"]
+description = "Apply Drizzle migrations"
+depends = ["db:wait"]
+run = "pnpm db:migrate"
+
+[tasks."db:seed"]
+description = "Seed deck + sample cards"
+depends = ["db:migrate"]
+run = "pnpm db:seed"
+
+[tasks."db:down"]
+description = "Stop Postgres"
+run = "docker compose down"
+
+[tasks.install]
+description = "Install node deps"
+run = "pnpm install"
+
 [tasks.dev]
-description = "Run dev server on home network"
+description = "Run dev server on home network (LAN-accessible)"
+depends = ["install", "db:migrate"]
 run = "pnpm dev"
 
 [tasks.build]
 description = "Build for production"
+depends = ["install"]
 run = "pnpm build"
 
 [tasks.start]
@@ -27,10 +56,14 @@ run = "pnpm lint"
 description = "Typecheck"
 run = "pnpm typecheck"
 
-[tasks.db-push]
-description = "Push schema to SQLite"
-run = "pnpm drizzle-kit push"
+[tasks.check]
+description = "Typecheck + lint"
+run = ["pnpm typecheck", "pnpm lint"]
 
-[tasks.db-studio]
-description = "Open Drizzle studio"
-run = "pnpm drizzle-kit studio"
+[tasks.lan]
+description = "Print URLs for phone access"
+run = """
+ip=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || hostname -I | awk '{print $1}')
+echo "Local:   http://localhost:${PORT:-3000}"
+echo "LAN:     http://${ip}:${PORT:-3000}"
+"""

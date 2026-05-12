@@ -38,7 +38,15 @@ const RATING_BUTTONS: { rating: Rating; label: string; key: string; cls: string 
   { rating: "easy", label: "Easy", key: "4", cls: "bg-sky-500 hover:bg-sky-600" },
 ];
 
-export function ReviewClient({ card, counts }: { card: ReviewCard | null; counts: Counts }) {
+export function ReviewClient({
+  card,
+  counts,
+  deckName,
+}: {
+  card: ReviewCard | null;
+  counts: Counts;
+  deckName?: string | null;
+}) {
   const router = useRouter();
   const [revealed, setRevealed] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -131,6 +139,11 @@ export function ReviewClient({ card, counts }: { card: ReviewCard | null; counts
   return (
     <div className="w-full max-w-md flex flex-col items-center gap-8">
       <CountsBar counts={counts} />
+      {deckName && (
+        <div className="text-xs text-zinc-500">
+          deck: <span className="font-medium text-zinc-700 dark:text-zinc-300">{deckName}</span>
+        </div>
+      )}
       <div className="text-xs uppercase tracking-wide text-zinc-400">
         {card.state} · rep {card.reps}
       </div>

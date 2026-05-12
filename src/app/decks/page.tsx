@@ -97,10 +97,20 @@ export default async function DecksPage() {
                     last reviewed: {relativeTime(d.lastReview)}
                   </div>
                 </div>
-                <div className="flex gap-2 shrink-0">
-                  <Stat label="due" n={d.due} accent={d.due > 0 ? "text-emerald-500" : "text-zinc-500"} />
-                  <Stat label="new" n={d.newCount} />
-                  <Stat label="total" n={d.total} />
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex gap-2">
+                    <Stat label="due" n={d.due} accent={d.due > 0 ? "text-emerald-500" : "text-zinc-500"} />
+                    <Stat label="new" n={d.newCount} />
+                    <Stat label="total" n={d.total} />
+                  </div>
+                  {(d.due > 0 || d.newCount > 0) && (
+                    <Link
+                      href={{ pathname: "/review", query: { deck: d.id } }}
+                      className="rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-3 py-2 text-xs font-medium hover:opacity-90"
+                    >
+                      Review
+                    </Link>
+                  )}
                 </div>
               </li>
             ))}

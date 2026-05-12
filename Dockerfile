@@ -72,6 +72,10 @@ COPY --from=build --chown=nextjs:nodejs /app/public ./public
 # Audio dir is a volume target; ensure ownership before the run user takes
 # over so first-boot audio:gen can write.
 RUN mkdir -p /app/public/audio && chown -R nextjs:nodejs /app/public/audio
+# audio:gen runs from /app-init with cwd there; src/lib/tts.ts resolves
+# AUDIO_DIR = cwd/public/audio. Symlink /app-init/public -> /app/public so
+# the generated files land in the bind-mounted volume.
+RUN ln -s /app/public /app-init/public
 
 COPY scripts/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh

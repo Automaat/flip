@@ -22,6 +22,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# Next.js evaluates route handlers during `collect page data` even for
+# force-dynamic routes; src/db/client.ts throws if DATABASE_URL is missing.
+# Provide a dummy URL — no connection happens at build time.
+ENV DATABASE_URL=postgres://flip:flip@127.0.0.1:5432/flip
 RUN pnpm build
 
 ###############

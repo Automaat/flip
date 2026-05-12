@@ -18,10 +18,10 @@ describe("COGNATE_RULES", () => {
     for (const r of COGNATE_RULES) {
       const suffix = r.esSuffix.replace(/^-/, "");
       const items = [...r.examples, ...r.quiz];
-      for (const it of items) {
+      for (const entry of items) {
         expect(
-          it.es.toLowerCase().endsWith(suffix),
-          `${r.id}: '${it.es}' should end with '${suffix}'`,
+          entry.es.toLowerCase().endsWith(suffix),
+          `${r.id}: '${entry.es}' should end with '${suffix}'`,
         ).toBe(true);
       }
     }
@@ -30,10 +30,10 @@ describe("COGNATE_RULES", () => {
   it("English entries (loosely) match the rule's suffix", () => {
     for (const r of COGNATE_RULES) {
       const suffix = r.enSuffix.replace(/^-/, "");
-      for (const it of r.quiz) {
+      for (const entry of r.quiz) {
         expect(
-          it.en.toLowerCase().endsWith(suffix),
-          `${r.id}: '${it.en}' should end with '${suffix}'`,
+          entry.en.toLowerCase().endsWith(suffix),
+          `${r.id}: '${entry.en}' should end with '${suffix}'`,
         ).toBe(true);
       }
     }

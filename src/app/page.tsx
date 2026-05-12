@@ -4,6 +4,7 @@ import { db } from "@/db/client";
 import { cards, notes, reviewLog, vocabulary } from "@/db/schema";
 import { computeStreak } from "@/lib/streaks";
 import { bandCoverage } from "@/lib/coverage";
+import { forecast } from "@/lib/forecast";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,10 @@ async function fetchStats() {
   const since = new Date();
   since.setDate(since.getDate() - 365);
 
-  const [cardCounts, vocabCount, dueCount, recentReviews, knownRanks] = await Promise.all([
+  const horizon = new Date();
+  horizon.setDate(horizon.getDate() + 7);
+
+  const [cardCounts, vocabCount, dueCount, recentReviews, knownRanks, upcomingDues] = await Promise.all([
     db
       .select({ state: cards.state, count: sql<number>`count(*)::int` })
       .from(cards)
@@ -47,12 +51,17 @@ async function fetchStats() {
       .from(reviewLog)
       .where(gte(reviewLog.reviewedAt, since)),
     fetchKnownRanks(),
+    db
+      .select({ due: cards.due })
+      .from(cards)
+      .where(sql`${cards.state} != 'new' AND ${cards.due} < ${horizon.toISOString()}::timestamptz`),
   ]);
   const states = { new: 0, learning: 0, review: 0, relearning: 0 };
   for (const r of cardCounts) states[r.state] = r.count;
   const streak = computeStreak(recentReviews.map((r) => r.at));
   const coverage = bandCoverage(knownRanks, Math.min(vocabCount, 5000));
-  return { states, vocab: vocabCount, due: dueCount, streak, coverage };
+  const forecast7 = forecast(upcomingDues.map((r) => r.due));
+  return { states, vocab: vocabCount, due: dueCount, streak, coverage, forecast: forecast7 };
 }
 
 export default async function Home() {
@@ -87,6 +96,45 @@ export default async function Home() {
           <Stat label="new" value={stats.states.new} />
           <Stat label="learn" value={stats.states.learning} accent="text-amber-500" />
           <Stat label="review" value={stats.states.review} accent="text-sky-500" />
+        </div>
+
+        <div className="w-full space-y-2">
+          <div className="flex items-baseline justify-between text-xs text-zinc-500">
+            <span>review forecast (7 days)</span>
+            <span>
+              <span className="text-zinc-900 dark:text-zinc-100 font-semibold">
+                {stats.forecast.reduce((a, b) => a + b.count, 0)}
+              </span>{" "}
+              upcoming
+            </span>
+          </div>
+          <div className="grid grid-cols-7 gap-1 items-end h-16">
+            {stats.forecast.map((b) => {
+              const max = Math.max(1, ...stats.forecast.map((x) => x.count));
+              const h = Math.round((b.count / max) * 100);
+              return (
+                <div key={b.date} className="flex flex-col items-center gap-1">
+                  <div
+                    className="w-full rounded-sm bg-zinc-200 dark:bg-zinc-800 relative"
+                    style={{ height: "100%" }}
+                    title={`${b.weekday} ${b.date}: ${b.count}`}
+                  >
+                    <div
+                      className={`absolute bottom-0 w-full rounded-sm ${
+                        b.isToday ? "bg-emerald-500" : "bg-zinc-500"
+                      }`}
+                      style={{ height: `${h}%` }}
+                    />
+                  </div>
+                  <span
+                    className={`text-[10px] ${b.isToday ? "text-emerald-500 font-semibold" : "text-zinc-400"}`}
+                  >
+                    {b.weekday}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div className="w-full space-y-2">

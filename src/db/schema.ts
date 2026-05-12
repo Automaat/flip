@@ -119,6 +119,7 @@ export const appSettings = pgTable("app_settings", {
   retention: real("retention").default(0.9).notNull(),
   voiceId: text("voice_id").default("es-MX-DaliaNeural").notNull(),
   region: text("region").default("latam").notNull(),
+  immersionPercent: integer("immersion_percent").default(0).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

@@ -22,6 +22,7 @@ export default async function SettingsPage() {
             retention: initial.retention,
             voiceId: initial.voiceId,
             region: initial.region as "latam" | "spain",
+            immersionPercent: initial.immersionPercent,
           }}
         />
 

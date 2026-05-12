@@ -5,8 +5,28 @@ import { cards, notes, reviewLog, vocabulary } from "@/db/schema";
 import { computeStreak } from "@/lib/streaks";
 import { bandCoverage } from "@/lib/coverage";
 import { forecast } from "@/lib/forecast";
+import { getSettings } from "@/lib/settings";
+import { immerse } from "@/lib/immerse";
 
 export const dynamic = "force-dynamic";
+
+const NAV_LINKS = [
+  { href: "/cognates", label: "Cognates" },
+  { href: "/false-friends", label: "False friends" },
+  { href: "/verbs", label: "Verbs" },
+  { href: "/dictate", label: "Dictate" },
+  { href: "/gender", label: "Gender" },
+  { href: "/pairs", label: "Pairs" },
+  { href: "/reader", label: "Reader" },
+  { href: "/stats", label: "Stats" },
+  { href: "/etymology", label: "Etymology" },
+  { href: "/construct", label: "Construct" },
+  { href: "/translate", label: "Translate" },
+  { href: "/tutor", label: "Tutor" },
+  { href: "/stories", label: "Stories" },
+  { href: "/write", label: "Write" },
+  { href: "/settings", label: "Settings" },
+] as const;
 
 async function fetchKnownRanks(): Promise<number[]> {
   // Distinct Spanish words across all notes — joined to vocabulary for rank.
@@ -65,7 +85,8 @@ async function fetchStats() {
 }
 
 export default async function Home() {
-  const stats = await fetchStats();
+  const [stats, settings] = await Promise.all([fetchStats(), getSettings()]);
+  const immersionPercent = settings.immersionPercent;
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-12">
       <div className="flex flex-col items-center gap-8 max-w-md w-full">
@@ -165,103 +186,24 @@ export default async function Home() {
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2 justify-center">
           <Link
             href="/review"
             className="inline-flex items-center justify-center rounded-full bg-zinc-900 dark:bg-zinc-50 px-6 py-3 text-sm font-medium text-zinc-50 dark:text-zinc-900 hover:opacity-90 transition"
           >
-            {stats.due > 0 ? `Start review (${stats.due})` : "Browse"}
+            {stats.due > 0
+              ? `${immerse("Review", immersionPercent)} (${stats.due})`
+              : immerse("Review", immersionPercent)}
           </Link>
-          <Link
-            href="/cognates"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Cognates
-          </Link>
-          <Link
-            href="/false-friends"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            False friends
-          </Link>
-          <Link
-            href="/verbs"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Verbs
-          </Link>
-          <Link
-            href="/dictate"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Dictate
-          </Link>
-          <Link
-            href="/gender"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Gender
-          </Link>
-          <Link
-            href="/pairs"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Pairs
-          </Link>
-          <Link
-            href="/reader"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Reader
-          </Link>
-          <Link
-            href="/stats"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Stats
-          </Link>
-          <Link
-            href="/etymology"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Etymology
-          </Link>
-          <Link
-            href="/construct"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Construct
-          </Link>
-          <Link
-            href="/translate"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Translate
-          </Link>
-          <Link
-            href="/tutor"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Tutor
-          </Link>
-          <Link
-            href="/stories"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Stories
-          </Link>
-          <Link
-            href="/write"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Write
-          </Link>
-          <Link
-            href="/settings"
-            className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
-          >
-            Settings
-          </Link>
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="inline-flex items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
+            >
+              {immerse(link.label, immersionPercent)}
+            </Link>
+          ))}
         </div>
       </div>
     </main>

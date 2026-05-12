@@ -1,0 +1,1 @@
+ALTER TABLE "app_settings" ADD COLUMN "immersion_percent" integer DEFAULT 0 NOT NULL;

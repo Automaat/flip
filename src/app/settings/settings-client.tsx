@@ -8,6 +8,7 @@ export type SettingsForm = {
   retention: number;
   voiceId: string;
   region: "latam" | "spain";
+  immersionPercent: number;
 };
 
 const VOICES_BY_REGION: Record<"latam" | "spain", { id: string; label: string }[]> = {
@@ -117,6 +118,23 @@ export function SettingsClient({ initial }: { initial: SettingsForm }) {
             </option>
           ))}
         </select>
+      </Field>
+
+      <Field
+        label={`Immersion: ${form.immersionPercent}%`}
+        hint="Probability that any UI label is rendered in Spanish."
+      >
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          value={form.immersionPercent}
+          onChange={(e) =>
+            setForm({ ...form, immersionPercent: parseInt(e.target.value, 10) })
+          }
+          className="w-full"
+        />
       </Field>
 
       <div className="flex justify-between items-center">

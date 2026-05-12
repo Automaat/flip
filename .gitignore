@@ -56,3 +56,6 @@ data/
 
 # drizzle
 drizzle/meta/_journal.json.lock
+
+# generated audio (regenerable)
+public/audio/

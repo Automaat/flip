@@ -18,6 +18,7 @@ export type ReviewCard = {
     example?: string;
     exampleEnglish?: string;
     gender?: "m" | "f";
+    audio?: { word?: string; example?: string };
   };
 };
 
@@ -35,10 +36,36 @@ export function ReviewClient({ card, counts }: { card: ReviewCard | null; counts
   const [revealed, setRevealed] = useState(false);
   const [isPending, startTransition] = useTransition();
   const startedAt = useRef<number | null>(null);
+  const wordAudioRef = useRef<HTMLAudioElement | null>(null);
+  const exAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     startedAt.current = performance.now();
   }, []);
+
+  const playWord = useCallback(() => {
+    const el = wordAudioRef.current;
+    if (!el) return;
+    el.currentTime = 0;
+    void el.play().catch(() => {});
+  }, []);
+
+  const playExample = useCallback(() => {
+    const el = exAudioRef.current;
+    if (!el) return;
+    el.currentTime = 0;
+    void el.play().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!card?.fields.audio?.word) return;
+    playWord();
+  }, [card?.id, card?.fields.audio?.word, playWord]);
+
+  useEffect(() => {
+    if (!revealed) return;
+    if (card?.fields.audio?.example) playExample();
+  }, [revealed, card?.fields.audio?.example, playExample]);
 
   const rate = useCallback(
     async (rating: Rating) => {
@@ -102,9 +129,21 @@ export function ReviewClient({ card, counts }: { card: ReviewCard | null; counts
       </div>
 
       <div className="min-h-[12rem] flex flex-col items-center justify-center gap-3 text-center">
-        <div className="text-5xl font-semibold text-zinc-900 dark:text-zinc-50">
-          {genderArticle && <span className={genderColor}>{genderArticle} </span>}
-          {card.fields.spanish}
+        <div className="flex items-center gap-3">
+          <div className="text-5xl font-semibold text-zinc-900 dark:text-zinc-50">
+            {genderArticle && <span className={genderColor}>{genderArticle} </span>}
+            {card.fields.spanish}
+          </div>
+          {card.fields.audio?.word && (
+            <button
+              type="button"
+              onClick={playWord}
+              aria-label="Play pronunciation"
+              className="text-2xl text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+            >
+              🔊
+            </button>
+          )}
         </div>
         {revealed && (
           <>
@@ -112,16 +151,35 @@ export function ReviewClient({ card, counts }: { card: ReviewCard | null; counts
               {card.fields.english}
             </div>
             {card.fields.example && (
-              <div className="mt-4 text-sm text-zinc-500 dark:text-zinc-400 italic">
-                &ldquo;{card.fields.example}&rdquo;
-                {card.fields.exampleEnglish && (
-                  <div className="mt-1 not-italic">{card.fields.exampleEnglish}</div>
+              <div className="mt-4 text-sm text-zinc-500 dark:text-zinc-400 italic flex items-center justify-center gap-2">
+                <span>&ldquo;{card.fields.example}&rdquo;</span>
+                {card.fields.audio?.example && (
+                  <button
+                    type="button"
+                    onClick={playExample}
+                    aria-label="Play example"
+                    className="not-italic text-base hover:text-zinc-900 dark:hover:text-zinc-100"
+                  >
+                    🔊
+                  </button>
                 )}
+              </div>
+            )}
+            {card.fields.exampleEnglish && (
+              <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                {card.fields.exampleEnglish}
               </div>
             )}
           </>
         )}
       </div>
+
+      {card.fields.audio?.word && (
+        <audio ref={wordAudioRef} src={card.fields.audio.word} preload="auto" />
+      )}
+      {card.fields.audio?.example && (
+        <audio ref={exAudioRef} src={card.fields.audio.example} preload="auto" />
+      )}
 
       {!revealed ? (
         <button

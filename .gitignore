@@ -42,8 +42,8 @@ yarn-error.log*
 next-env.d.ts
 
 # postgres data
-postgres-data/
-data/
+/postgres-data/
+/data/
 
 # editor
 .vscode/
@@ -62,3 +62,8 @@ public/audio/
 
 # downloaded data cache
 .cache/
+
+# playwright
+test-results/
+playwright-report/
+.playwright/

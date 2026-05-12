@@ -67,3 +67,6 @@ public/audio/
 test-results/
 playwright-report/
 .playwright/
+
+# claude code session state
+.claude/

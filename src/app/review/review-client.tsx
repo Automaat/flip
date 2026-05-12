@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { matchesAnswer } from "@/lib/cognates";
 
 type Rating = "again" | "hard" | "good" | "easy";
 
@@ -42,13 +44,17 @@ export function ReviewClient({
   card,
   counts,
   deckName,
+  mode = "receptive",
 }: {
   card: ReviewCard | null;
   counts: Counts;
   deckName?: string | null;
+  mode?: "receptive" | "productive";
 }) {
   const router = useRouter();
   const [revealed, setRevealed] = useState(false);
+  const [typed, setTyped] = useState("");
+  const [typedResult, setTypedResult] = useState<"correct" | "wrong" | null>(null);
   const [isPending, startTransition] = useTransition();
   const startedAt = useRef<number | null>(null);
   const wordAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -136,9 +142,21 @@ export function ReviewClient({
         ? "text-rose-500"
         : "";
 
+  const isProductive = mode === "productive";
+  const canCheckTyped =
+    isProductive && card.noteType !== "cloze" && Boolean(card.fields.spanish);
+
+  function checkTyped() {
+    if (!typed.trim() || !card?.fields.spanish) return;
+    const ok = matchesAnswer(typed, card.fields.spanish);
+    setTypedResult(ok ? "correct" : "wrong");
+    setRevealed(true);
+  }
+
   return (
     <div className="w-full max-w-md flex flex-col items-center gap-8">
       <CountsBar counts={counts} />
+      <ModeSwitch mode={mode} deckName={deckName} />
       {deckName && (
         <div className="text-xs text-zinc-500">
           deck: <span className="font-medium text-zinc-700 dark:text-zinc-300">{deckName}</span>
@@ -151,6 +169,8 @@ export function ReviewClient({
       <div className="min-h-[12rem] flex flex-col items-center justify-center gap-3 text-center">
         {card.noteType === "cloze" && card.fields.sentence ? (
           <ClozeBody card={card} revealed={revealed} />
+        ) : canCheckTyped && !revealed ? (
+          <ProductiveBody card={card} />
         ) : (
           <VocabBody
             card={card}
@@ -159,6 +179,8 @@ export function ReviewClient({
             genderColor={genderColor}
             playWord={playWord}
             playExample={playExample}
+            typedResult={typedResult}
+            typedAnswer={typed}
           />
         )}
       </div>
@@ -170,7 +192,32 @@ export function ReviewClient({
         <audio ref={exAudioRef} src={card.fields.audio.example} preload="auto" />
       )}
 
-      {!revealed ? (
+      {!revealed && canCheckTyped ? (
+        <div className="w-full flex flex-col gap-2">
+          <input
+            autoFocus
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") checkTyped();
+            }}
+            placeholder="type Spanish translation"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            className="w-full rounded border border-zinc-300 dark:border-zinc-700 bg-transparent px-4 py-3 text-center text-lg outline-none focus:ring-2 focus:ring-zinc-500/40"
+          />
+          <button
+            type="button"
+            onClick={checkTyped}
+            disabled={!typed.trim()}
+            className="self-end rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-5 py-2 text-sm disabled:opacity-50"
+          >
+            Check (enter)
+          </button>
+        </div>
+      ) : !revealed ? (
         <button
           type="button"
           onClick={() => setRevealed(true)}
@@ -228,6 +275,67 @@ function ClozeBody({ card, revealed }: { card: ReviewCard; revealed: boolean }) 
   );
 }
 
+function ProductiveBody({ card }: { card: ReviewCard }) {
+  return (
+    <div className="flex flex-col items-center gap-2 text-center">
+      <div className="text-xs uppercase tracking-wide text-zinc-500">Type the Spanish for:</div>
+      <div className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
+        {card.fields.english}
+      </div>
+      {card.fields.exampleEnglish && (
+        <div className="text-sm text-zinc-500 italic">{card.fields.exampleEnglish}</div>
+      )}
+    </div>
+  );
+}
+
+function ModeSwitch({
+  mode,
+  deckName,
+}: {
+  mode: "receptive" | "productive";
+  deckName?: string | null;
+}) {
+  const recHref: { pathname: "/review"; query: Record<string, string> } = {
+    pathname: "/review",
+    query: deckName ? { deck: "", mode: "receptive" } : { mode: "receptive" },
+  };
+  const proHref: { pathname: "/review"; query: Record<string, string> } = {
+    pathname: "/review",
+    query: deckName ? { deck: "", mode: "productive" } : { mode: "productive" },
+  };
+  // Note: we can't easily preserve deck id here without it being prop-drilled.
+  // Strip empty deck= keys to avoid mis-routing.
+  if (!deckName) {
+    delete recHref.query.deck;
+    delete proHref.query.deck;
+  }
+  return (
+    <div className="flex gap-1 text-xs">
+      <Link
+        href={{ pathname: "/review", query: { mode: "receptive" } }}
+        className={`rounded-full px-3 py-1 ${
+          mode === "receptive"
+            ? "bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900"
+            : "border border-zinc-300 dark:border-zinc-700"
+        }`}
+      >
+        ES → EN
+      </Link>
+      <Link
+        href={{ pathname: "/review", query: { mode: "productive" } }}
+        className={`rounded-full px-3 py-1 ${
+          mode === "productive"
+            ? "bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900"
+            : "border border-zinc-300 dark:border-zinc-700"
+        }`}
+      >
+        EN → ES
+      </Link>
+    </div>
+  );
+}
+
 function VocabBody({
   card,
   revealed,
@@ -235,6 +343,8 @@ function VocabBody({
   genderColor,
   playWord,
   playExample,
+  typedResult,
+  typedAnswer,
 }: {
   card: ReviewCard;
   revealed: boolean;
@@ -242,6 +352,8 @@ function VocabBody({
   genderColor: string;
   playWord: () => void;
   playExample: () => void;
+  typedResult?: "correct" | "wrong" | null;
+  typedAnswer?: string;
 }) {
   return (
     <>
@@ -261,6 +373,15 @@ function VocabBody({
           </button>
         )}
       </div>
+      {revealed && typedResult && (
+        <div className="text-sm">
+          {typedResult === "correct" ? (
+            <span className="text-emerald-500">✓ you typed: {typedAnswer}</span>
+          ) : (
+            <span className="text-rose-500">✗ you typed: {typedAnswer}</span>
+          )}
+        </div>
+      )}
       {revealed && (
         <>
           {card.noteType === "false_friend" && card.fields.englishTrap && (

@@ -78,13 +78,15 @@ async function fetchDeckName(deckId: string): Promise<string | null> {
   return rows[0]?.name ?? null;
 }
 
-type Props = { searchParams: Promise<{ deck?: string }> };
+type Props = { searchParams: Promise<{ deck?: string; mode?: string }> };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function ReviewPage({ searchParams }: Props) {
   const sp = await searchParams;
   const deckId = sp?.deck && UUID_RE.test(sp.deck) ? sp.deck : undefined;
+  const mode: "receptive" | "productive" =
+    sp?.mode === "productive" ? "productive" : "receptive";
   const settings = await getSettings();
   const introducedToday = await countNewIntroducedToday();
   const newCardsLeft = Math.max(0, settings.newCardsPerDay - introducedToday);
@@ -96,10 +98,11 @@ export default async function ReviewPage({ searchParams }: Props) {
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-12">
       <ReviewClient
-        key={card?.id ?? "done"}
+        key={`${card?.id ?? "done"}-${mode}`}
         card={card}
         counts={counts}
         deckName={deckName}
+        mode={mode}
       />
     </main>
   );

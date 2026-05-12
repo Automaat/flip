@@ -6,7 +6,9 @@ test("pronounce page renders + home links to it", async ({ page }) => {
   await expect(link).toBeVisible();
   await link.click();
   await expect(page.getByRole("heading", { name: "Pronounce" })).toBeVisible();
-  // Either a record button (supported in chromium) or "Unsupported".
+  // Either a record button (audio notes exist) or the empty-state hint
+  // (CI doesn't run audio:gen, so notes have no audio.example).
   const button = page.getByRole("button", { name: /record|unsupported/i });
-  await expect(button).toBeVisible();
+  const emptyHint = page.getByText(/no audio sentences/i);
+  await expect(button.or(emptyHint)).toBeVisible();
 });

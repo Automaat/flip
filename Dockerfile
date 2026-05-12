@@ -52,6 +52,7 @@ COPY --from=build /app/node_modules /app-init/node_modules
 COPY --from=build /app/src /app-init/src
 COPY --from=build /app/drizzle /app-init/drizzle
 COPY --from=build /app/drizzle.config.ts /app-init/drizzle.config.ts
+COPY --from=build /app/tsconfig.json /app-init/tsconfig.json
 COPY --from=build /app/package.json /app-init/package.json
 
 # Non-root user for the long-lived Next.js server.

@@ -52,8 +52,13 @@ COPY --from=build /app/node_modules /app-init/node_modules
 COPY --from=build /app/src /app-init/src
 COPY --from=build /app/drizzle /app-init/drizzle
 COPY --from=build /app/drizzle.config.ts /app-init/drizzle.config.ts
-COPY --from=build /app/tsconfig.json /app-init/tsconfig.json
 COPY --from=build /app/package.json /app-init/package.json
+COPY --from=build /app/tsconfig.json /app-init/tsconfig.json
+# Fail loudly if any of the init bundle is missing.
+RUN test -f /app-init/tsconfig.json \
+ && test -f /app-init/drizzle.config.ts \
+ && test -d /app-init/src \
+ || (echo "Missing init bundle file!" && ls -la /app-init && exit 1)
 
 # Non-root user for the long-lived Next.js server.
 RUN addgroup --system --gid 1001 nodejs && \

@@ -8,6 +8,7 @@ const TRANSLATIONS: Record<string, string> = {
   Dictate: "Dictado",
   Gender: "Género",
   Pairs: "Pares",
+  Pronounce: "Pronunciar",
   Reader: "Lector",
   Stats: "Estadísticas",
   Etymology: "Etimología",

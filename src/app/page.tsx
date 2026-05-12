@@ -17,6 +17,7 @@ const NAV_LINKS = [
   { href: "/dictate", label: "Dictate" },
   { href: "/gender", label: "Gender" },
   { href: "/pairs", label: "Pairs" },
+  { href: "/pronounce", label: "Pronounce" },
   { href: "/reader", label: "Reader" },
   { href: "/stats", label: "Stats" },
   { href: "/etymology", label: "Etymology" },

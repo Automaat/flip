@@ -3,7 +3,7 @@
 ###############
 # 1. deps
 ###############
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
 RUN corepack enable
@@ -17,7 +17,7 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 ###############
 # 2. build
 ###############
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 RUN corepack enable
 
@@ -34,7 +34,7 @@ RUN pnpm build
 ###############
 # 3. runner
 ###############
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

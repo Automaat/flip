@@ -50,7 +50,7 @@
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.1.6",
     "drizzle-kit": "^0.31.0",
-    "eslint": "^9",
+    "eslint": "^10.0.0",
     "eslint-config-next": "16.2.6",
     "oxlint": "^1.64.0",
     "sharp": "^0.34.5",

@@ -13,6 +13,9 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // eslint-plugin-react auto-detection uses context.getFilename() removed in
+  // ESLint v10; set explicit version to bypass detection.
+  { settings: { react: { version: "19" } } },
 ]);
 
 export default eslintConfig;

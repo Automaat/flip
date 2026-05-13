@@ -51,6 +51,7 @@ export function rowToFsrs(row: CardRow): FsrsCard {
     difficulty: row.difficulty,
     elapsed_days: row.elapsedDays,
     scheduled_days: row.scheduledDays,
+    learning_steps: 0,
     reps: row.reps,
     lapses: row.lapses,
     state: dbToState[row.state],

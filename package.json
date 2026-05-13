@@ -37,9 +37,8 @@
     "zod": "^4.0.0"
   },
   "pnpm": {
-    "ignoredBuiltDependencies": [
-      "sharp",
-      "unrs-resolver"
+    "onlyBuiltDependencies": [
+      "esbuild"
     ]
   },
   "devDependencies": {

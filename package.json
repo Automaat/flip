@@ -38,7 +38,16 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "esbuild"
+      "esbuild",
+      "msedge-tts",
+      "sharp",
+      "unrs-resolver"
+    ],
+    "approvedBuilds": [
+      "esbuild",
+      "msedge-tts",
+      "sharp",
+      "unrs-resolver"
     ]
   },
   "devDependencies": {

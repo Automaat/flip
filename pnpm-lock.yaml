@@ -3,6 +3,11 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
+  onlyBuiltDependencies:
+    - esbuild
+    - msedge-tts
+    - sharp
+    - unrs-resolver
 
 importers:
 

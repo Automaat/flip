@@ -3,11 +3,6 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
-  onlyBuiltDependencies:
-    - esbuild
-    - msedge-tts
-    - sharp
-    - unrs-resolver
 
 importers:
 
@@ -4465,7 +4460,6 @@ snapshots:
       is-symbol: 1.1.1
 
   esbuild@0.18.20:
-    requiresBuild: true
     optionalDependencies:
       '@esbuild/android-arm': 0.18.20
       '@esbuild/android-arm64': 0.18.20
@@ -4491,7 +4485,6 @@ snapshots:
       '@esbuild/win32-x64': 0.18.20
 
   esbuild@0.25.12:
-    requiresBuild: true
     optionalDependencies:
       '@esbuild/aix-ppc64': 0.25.12
       '@esbuild/android-arm': 0.25.12
@@ -4521,7 +4514,6 @@ snapshots:
       '@esbuild/win32-x64': 0.25.12
 
   esbuild@0.27.7:
-    requiresBuild: true
     optionalDependencies:
       '@esbuild/aix-ppc64': 0.27.7
       '@esbuild/android-arm': 0.27.7
@@ -5220,7 +5212,6 @@ snapshots:
   ms@2.1.3: {}
 
   msedge-tts@2.0.5:
-    requiresBuild: true
     dependencies:
       axios: 1.16.0
       buffer: 6.0.3
@@ -5536,7 +5527,6 @@ snapshots:
       es-object-atoms: 1.1.1
 
   sharp@0.34.5:
-    requiresBuild: true
     dependencies:
       '@img/colour': 1.1.0
       detect-libc: 2.1.2
@@ -5798,7 +5788,6 @@ snapshots:
   undici-types@7.16.0: {}
 
   unrs-resolver@1.11.1:
-    requiresBuild: true
     dependencies:
       napi-postinstall: 0.3.4
     optionalDependencies:

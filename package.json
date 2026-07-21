@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Spanish learning app with FSRS spaced repetition, AI mnemonics, comprehensible input",
-  "packageManager": "pnpm@11.9.0",
+  "packageManager": "pnpm@11.15.1",
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p ${PORT:-3000}",
     "build": "next build",

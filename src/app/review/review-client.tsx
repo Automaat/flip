@@ -6,6 +6,7 @@ import Link from "next/link";
 import { matchesAnswer } from "@/lib/cognates";
 import { isEditableTarget } from "@/lib/keys";
 import { pickPrompt, shouldPrompt } from "@/lib/prompts";
+import { typedRating } from "@/lib/typed-rating";
 
 type Rating = "again" | "hard" | "good" | "easy";
 
@@ -171,10 +172,10 @@ export function ReviewClient({
         }
         return;
       }
-      if (typedResult === "correct") {
+      if (typedResult) {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          void rate("good");
+          void rate(typedRating(typedResult));
         }
         return;
       }
@@ -313,12 +314,16 @@ export function ReviewClient({
         >
           Reveal (space)
         </button>
-      ) : typedResult === "correct" ? (
+      ) : typedResult ? (
         <button
           type="button"
-          onClick={() => void rate("good")}
+          onClick={() => void rate(typedRating(typedResult))}
           disabled={isPending}
-          className="w-full rounded-lg bg-emerald-500 hover:bg-emerald-600 px-6 py-3 text-white text-sm font-medium disabled:opacity-50"
+          className={`w-full rounded-lg px-6 py-3 text-white text-sm font-medium disabled:opacity-50 ${
+            typedResult === "correct"
+              ? "bg-emerald-500 hover:bg-emerald-600"
+              : "bg-rose-500 hover:bg-rose-600"
+          }`}
         >
           Continue (enter)
         </button>

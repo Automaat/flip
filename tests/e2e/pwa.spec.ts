@@ -15,6 +15,14 @@ test("manifest.webmanifest serves valid JSON with required keys", async ({ reque
   expect(Array.isArray(m.shortcuts)).toBe(true);
 });
 
+test("service worker serves HTML network-first so deploys are picked up", async ({ request }) => {
+  const res = await request.get("/sw.js");
+  expect(res.ok()).toBeTruthy();
+  const src = await res.text();
+  expect(src).toContain("networkFirst");
+  expect(src).toMatch(/req\.mode === "navigate"/);
+});
+
 test.describe("PWA icons", () => {
   for (const file of [
     "/icon-192.png",

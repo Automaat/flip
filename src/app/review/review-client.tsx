@@ -6,6 +6,7 @@ import Link from "next/link";
 import { matchesAnswer } from "@/lib/cognates";
 import { isEditableTarget } from "@/lib/keys";
 import { pickPrompt, shouldPrompt } from "@/lib/prompts";
+import { typedRating } from "@/lib/typed-rating";
 
 type Rating = "again" | "hard" | "good" | "easy";
 
@@ -171,10 +172,10 @@ export function ReviewClient({
         }
         return;
       }
-      if (typedResult === "correct") {
+      if (typedResult) {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          void rate("good");
+          void rate(typedRating(typedResult));
         }
         return;
       }
@@ -209,6 +210,11 @@ export function ReviewClient({
 
   const canCheckTyped =
     isProductive && card.noteType !== "cloze" && Boolean(card.fields.spanish);
+
+  function giveUp() {
+    setTypedResult("wrong");
+    setRevealed(true);
+  }
 
   function checkTyped() {
     if (!typed.trim() || !card?.fields.spanish) return;
@@ -295,14 +301,23 @@ export function ReviewClient({
             spellCheck={false}
             className="w-full rounded border border-zinc-300 dark:border-zinc-700 bg-transparent px-4 py-3 text-center text-lg outline-none focus:ring-2 focus:ring-zinc-500/40"
           />
-          <button
-            type="button"
-            onClick={checkTyped}
-            disabled={!typed.trim()}
-            className="self-end rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-5 py-2 text-sm disabled:opacity-50"
-          >
-            Check (enter)
-          </button>
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={giveUp}
+              className="rounded-full border border-zinc-300 dark:border-zinc-700 px-5 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:border-zinc-500"
+            >
+              I don&apos;t know
+            </button>
+            <button
+              type="button"
+              onClick={checkTyped}
+              disabled={!typed.trim()}
+              className="rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-5 py-2 text-sm disabled:opacity-50"
+            >
+              Check (enter)
+            </button>
+          </div>
         </div>
       ) : !revealed ? (
         <button
@@ -313,12 +328,16 @@ export function ReviewClient({
         >
           Reveal (space)
         </button>
-      ) : typedResult === "correct" ? (
+      ) : typedResult ? (
         <button
           type="button"
-          onClick={() => void rate("good")}
+          onClick={() => void rate(typedRating(typedResult))}
           disabled={isPending}
-          className="w-full rounded-lg bg-emerald-500 hover:bg-emerald-600 px-6 py-3 text-white text-sm font-medium disabled:opacity-50"
+          className={`w-full rounded-lg px-6 py-3 text-white text-sm font-medium disabled:opacity-50 ${
+            typedResult === "correct"
+              ? "bg-emerald-500 hover:bg-emerald-600"
+              : "bg-rose-500 hover:bg-rose-600"
+          }`}
         >
           Continue (enter)
         </button>
@@ -529,8 +548,10 @@ function VocabBody({
         <div className="text-sm">
           {typedResult === "correct" ? (
             <span className="text-emerald-500">✓ you typed: {typedAnswer}</span>
-          ) : (
+          ) : typedAnswer?.trim() ? (
             <span className="text-rose-500">✗ you typed: {typedAnswer}</span>
+          ) : (
+            <span className="text-rose-500">✗ didn&apos;t know</span>
           )}
         </div>
       )}

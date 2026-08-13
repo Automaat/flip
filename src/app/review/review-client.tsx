@@ -35,6 +35,8 @@ export type ReviewCard = {
 
 type Counts = { new: number; learning: number; review: number; relearning: number };
 
+const MAX_DURATION_MS = 600_000;
+
 const RATING_BUTTONS: { rating: Rating; label: string; key: string; cls: string }[] = [
   { rating: "again", label: "Again", key: "1", cls: "bg-rose-500 hover:bg-rose-600" },
   { rating: "hard", label: "Hard", key: "2", cls: "bg-amber-500 hover:bg-amber-600" },
@@ -80,28 +82,59 @@ export function ReviewClient({
     void el.play().catch(() => {});
   }, []);
 
+  const isProductive = mode === "productive";
+
+  // productive mode: the Spanish word is the answer — do not speak it before reveal
   useEffect(() => {
     if (!card?.fields.audio?.word) return;
+    if (isProductive) return;
     playWord();
-  }, [card?.id, card?.fields.audio?.word, playWord]);
+  }, [card?.id, card?.fields.audio?.word, isProductive, playWord]);
 
   useEffect(() => {
     if (!revealed) return;
+    if (isProductive && card?.fields.audio?.word) {
+      const el = wordAudioRef.current;
+      playWord();
+      if (el && card?.fields.audio?.example) {
+        const chain = () => playExample();
+        el.addEventListener("ended", chain, { once: true });
+        return () => el.removeEventListener("ended", chain);
+      }
+      return;
+    }
     if (card?.fields.audio?.example) playExample();
-  }, [revealed, card?.fields.audio?.example, playExample]);
+  }, [
+    revealed,
+    card?.fields.audio?.word,
+    card?.fields.audio?.example,
+    isProductive,
+    playWord,
+    playExample,
+  ]);
 
   const [deepPrompt, setDeepPrompt] = useState<string | null>(null);
+  const [rateError, setRateError] = useState<string | null>(null);
 
   const rate = useCallback(
     async (rating: Rating) => {
       if (!card) return;
       const start = startedAt.current ?? performance.now();
-      const durationMs = Math.round(performance.now() - start);
+      // API caps durationMs at 10 min; a long-open card must not 400 and strand the review
+      const durationMs = Math.min(
+        MAX_DURATION_MS,
+        Math.max(0, Math.round(performance.now() - start)),
+      );
+      setRateError(null);
       const res = await fetch("/api/review/rate", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ cardId: card.id, rating, durationMs }),
-      });
+      }).catch(() => null);
+      if (!res || !res.ok) {
+        setRateError(`Could not save rating${res ? ` (${res.status})` : ""}. Try again.`);
+        return;
+      }
       const data = (await res.json().catch(() => null)) as {
         state?: "new" | "learning" | "review" | "relearning";
       } | null;
@@ -135,6 +168,13 @@ export function ReviewClient({
         }
         return;
       }
+      if (typedResult === "correct") {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          void rate("good");
+        }
+        return;
+      }
       const btn = RATING_BUTTONS.find((b) => b.key === e.key);
       if (btn) {
         e.preventDefault();
@@ -143,7 +183,7 @@ export function ReviewClient({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [card, revealed, isPending, rate]);
+  }, [card, revealed, isPending, typedResult, rate]);
 
   if (!card) {
     return (
@@ -164,7 +204,6 @@ export function ReviewClient({
         ? "text-rose-500"
         : "";
 
-  const isProductive = mode === "productive";
   const canCheckTyped =
     isProductive && card.noteType !== "cloze" && Boolean(card.fields.spanish);
 
@@ -271,6 +310,15 @@ export function ReviewClient({
         >
           Reveal (space)
         </button>
+      ) : typedResult === "correct" ? (
+        <button
+          type="button"
+          onClick={() => void rate("good")}
+          disabled={isPending}
+          className="w-full rounded-lg bg-emerald-500 hover:bg-emerald-600 px-6 py-3 text-white text-sm font-medium disabled:opacity-50"
+        >
+          Continue (enter)
+        </button>
       ) : (
         <div className="grid grid-cols-4 gap-2 w-full">
           {RATING_BUTTONS.map((b) => (
@@ -287,6 +335,7 @@ export function ReviewClient({
           ))}
         </div>
       )}
+      {rateError && <p className="text-xs text-rose-500">{rateError}</p>}
     </div>
   );
 }

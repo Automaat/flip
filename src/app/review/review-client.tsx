@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { matchesAnswer } from "@/lib/cognates";
+import { isEditableTarget } from "@/lib/keys";
 import { pickPrompt, shouldPrompt } from "@/lib/prompts";
 
 type Rating = "again" | "hard" | "good" | "easy";
@@ -161,6 +162,8 @@ export function ReviewClient({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!card || isPending) return;
+      // A space inside the answer box must type a space, not reveal the card.
+      if (isEditableTarget(e.target)) return;
       if (!revealed) {
         if (e.key === " " || e.key === "Enter") {
           e.preventDefault();

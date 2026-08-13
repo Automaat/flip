@@ -15,12 +15,15 @@ test("manifest.webmanifest serves valid JSON with required keys", async ({ reque
   expect(Array.isArray(m.shortcuts)).toBe(true);
 });
 
-test("service worker serves HTML network-first so deploys are picked up", async ({ request }) => {
+test("service worker only caches build-immutable assets", async ({ request }) => {
   const res = await request.get("/sw.js");
   expect(res.ok()).toBeTruthy();
   const src = await res.text();
   expect(src).toContain("networkFirst");
-  expect(src).toMatch(/req\.mode === "navigate"/);
+  // cacheFirst must be reachable only through the static-asset check, so RSC
+  // payloads cannot be replayed from cache.
+  expect(src).toMatch(/if \(isStaticAsset\(url\)\) \{\s*event\.respondWith\(cacheFirst\(req\)\);/);
+  expect(src).toContain("/_next/static/");
 });
 
 test.describe("PWA icons", () => {

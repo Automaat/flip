@@ -1,5 +1,25 @@
-const CACHE = "flip-v2";
+const CACHE = "flip-v3";
 const PRECACHE = ["/", "/manifest.webmanifest"];
+
+// Only build-immutable assets are safe to serve from cache without a network
+// check. Everything else (documents, RSC payloads) must reflect the server.
+const STATIC_PREFIXES = ["/_next/static/", "/audio/", "/icons/"];
+const STATIC_FILES = new Set([
+  "/manifest.webmanifest",
+  "/icon.svg",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/icon-maskable-192.png",
+  "/icon-maskable-512.png",
+  "/apple-touch-icon.png",
+]);
+
+function isStaticAsset(url) {
+  return (
+    STATIC_PREFIXES.some((p) => url.pathname.startsWith(p)) ||
+    STATIC_FILES.has(url.pathname)
+  );
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -33,7 +53,7 @@ function cacheFirst(req) {
 function networkFirst(req) {
   return fetch(req)
     .then((res) => {
-      if (res.ok && res.type === "basic") {
+      if (res.ok && res.type === "basic" && req.mode === "navigate") {
         const clone = res.clone();
         caches.open(CACHE).then((c) => c.put(req, clone));
       }
@@ -55,12 +75,13 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // HTML must come from the network so a new deploy is picked up; cached HTML
-  // would keep pointing at the previous build's hashed assets forever.
-  if (req.mode === "navigate" || req.headers.get("accept")?.includes("text/html")) {
-    event.respondWith(networkFirst(req));
+  if (isStaticAsset(url)) {
+    event.respondWith(cacheFirst(req));
     return;
   }
 
-  event.respondWith(cacheFirst(req));
+  // Documents and RSC payloads (router.refresh sends Accept: text/x-component
+  // with a ?_rsc= query). A cached RSC payload replays the same review card
+  // forever, so these never come from cache while the network is up.
+  event.respondWith(networkFirst(req));
 });

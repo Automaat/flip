@@ -211,6 +211,11 @@ export function ReviewClient({
   const canCheckTyped =
     isProductive && card.noteType !== "cloze" && Boolean(card.fields.spanish);
 
+  function giveUp() {
+    setTypedResult("wrong");
+    setRevealed(true);
+  }
+
   function checkTyped() {
     if (!typed.trim() || !card?.fields.spanish) return;
     const ok = matchesAnswer(typed, card.fields.spanish);
@@ -296,14 +301,23 @@ export function ReviewClient({
             spellCheck={false}
             className="w-full rounded border border-zinc-300 dark:border-zinc-700 bg-transparent px-4 py-3 text-center text-lg outline-none focus:ring-2 focus:ring-zinc-500/40"
           />
-          <button
-            type="button"
-            onClick={checkTyped}
-            disabled={!typed.trim()}
-            className="self-end rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-5 py-2 text-sm disabled:opacity-50"
-          >
-            Check (enter)
-          </button>
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={giveUp}
+              className="rounded-full border border-zinc-300 dark:border-zinc-700 px-5 py-2 text-sm text-zinc-600 dark:text-zinc-300 hover:border-zinc-500"
+            >
+              I don&apos;t know
+            </button>
+            <button
+              type="button"
+              onClick={checkTyped}
+              disabled={!typed.trim()}
+              className="rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-5 py-2 text-sm disabled:opacity-50"
+            >
+              Check (enter)
+            </button>
+          </div>
         </div>
       ) : !revealed ? (
         <button
@@ -534,8 +548,10 @@ function VocabBody({
         <div className="text-sm">
           {typedResult === "correct" ? (
             <span className="text-emerald-500">✓ you typed: {typedAnswer}</span>
-          ) : (
+          ) : typedAnswer?.trim() ? (
             <span className="text-rose-500">✗ you typed: {typedAnswer}</span>
+          ) : (
+            <span className="text-rose-500">✗ didn&apos;t know</span>
           )}
         </div>
       )}

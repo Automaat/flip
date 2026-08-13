@@ -1,4 +1,4 @@
-const CACHE = "flip-v1";
+const CACHE = "flip-v2";
 const PRECACHE = ["/", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
@@ -16,6 +16,32 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+function cacheFirst(req) {
+  return caches.match(req).then(
+    (cached) =>
+      cached ??
+      fetch(req).then((res) => {
+        if (res.ok && res.type === "basic") {
+          const clone = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, clone));
+        }
+        return res;
+      }),
+  );
+}
+
+function networkFirst(req) {
+  return fetch(req)
+    .then((res) => {
+      if (res.ok && res.type === "basic") {
+        const clone = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, clone));
+      }
+      return res;
+    })
+    .catch(() => caches.match(req).then((r) => r ?? caches.match("/")));
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -29,17 +55,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(req).then(
-      (cached) =>
-        cached ??
-        fetch(req).then((res) => {
-          if (res.ok && res.type === "basic") {
-            const clone = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, clone));
-          }
-          return res;
-        }),
-    ),
-  );
+  // HTML must come from the network so a new deploy is picked up; cached HTML
+  // would keep pointing at the previous build's hashed assets forever.
+  if (req.mode === "navigate" || req.headers.get("accept")?.includes("text/html")) {
+    event.respondWith(networkFirst(req));
+    return;
+  }
+
+  event.respondWith(cacheFirst(req));
 });

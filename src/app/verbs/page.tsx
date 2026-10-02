@@ -1,49 +1,36 @@
 import Link from "next/link";
-import { inArray } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/db/client";
-import { decks } from "@/db/schema";
-import {
-  IRREGULAR_VERBS_IMPERFECT,
-  IRREGULAR_VERBS_PRESENT,
-  IRREGULAR_VERBS_PRETERITE,
-  PERSONS,
-  type Tense,
-  type VerbConjugation,
-} from "@/data/verbs";
+import { cards, decks } from "@/db/schema";
+import { PERSONS, TENSE_LABELS, TENSES, type Tense, type VerbGroup } from "@/data/verbs";
+import { verbDeckName, verbTable } from "@/lib/conjugate";
 import { VerbsClient } from "./verbs-client";
 
 export const dynamic = "force-dynamic";
 
-const DECK_NAMES: Record<Tense, string> = {
-  present: "Present Indicative — Irregulars",
-  preterite: "Preterite — Irregulars",
-  imperfect: "Imperfect — Irregulars",
-};
-
-type Props = { searchParams: Promise<{ tense?: string }> };
+type Props = { searchParams: Promise<{ tense?: string; group?: string }> };
 
 function parseTense(raw: string | undefined): Tense {
-  if (raw === "preterite" || raw === "imperfect") return raw;
-  return "present";
+  return TENSES.find((t) => t === raw) ?? "present";
 }
 
-const TABLES: Record<Tense, VerbConjugation[]> = {
-  present: IRREGULAR_VERBS_PRESENT,
-  preterite: IRREGULAR_VERBS_PRETERITE,
-  imperfect: IRREGULAR_VERBS_IMPERFECT,
-};
+function parseGroup(raw: string | undefined): VerbGroup {
+  return raw === "regular" ? "regular" : "irregular";
+}
 
 export default async function VerbsPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const tense: Tense = parseTense(sp?.tense);
-  const table: VerbConjugation[] = TABLES[tense];
+  const tense = parseTense(sp?.tense);
+  const group = parseGroup(sp?.group);
+  const table = verbTable(group, tense);
 
-  const importedDecks = await db
-    .select({ name: decks.name })
+  const cardCount = table.length * PERSONS.length;
+  const [deckCards] = await db
+    .select({ count: sql<number>`count(${cards.id})::int` })
     .from(decks)
-    .where(inArray(decks.name, Object.values(DECK_NAMES)));
-  const importedNames = new Set(importedDecks.map((d) => d.name));
-  const imported = importedNames.has(DECK_NAMES[tense]);
+    .leftJoin(cards, eq(cards.deckId, decks.id))
+    .where(eq(decks.name, verbDeckName(group, tense)));
+  const complete = (deckCards?.count ?? 0) >= cardCount;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-12">
@@ -51,32 +38,45 @@ export default async function VerbsPage({ searchParams }: Props) {
         <header className="text-center">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Verbs</h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            14 essential irregulars × 5 LATAM persons. Switch tenses below.
+            {table.length} {group} verbs × {PERSONS.length} persons. Switch tenses below.
           </p>
         </header>
 
-        <nav className="flex flex-wrap justify-center gap-2">
-          <TenseLink
-            href={{ pathname: "/verbs", query: { tense: "present" } }}
-            active={tense === "present"}
-            label="Present"
-          />
-          <TenseLink
-            href={{ pathname: "/verbs", query: { tense: "preterite" } }}
-            active={tense === "preterite"}
-            label="Preterite"
-          />
-          <TenseLink
-            href={{ pathname: "/verbs", query: { tense: "imperfect" } }}
-            active={tense === "imperfect"}
-            label="Imperfect"
-          />
+        <Link
+          href="/verbs/drill"
+          className="self-center rounded-full bg-emerald-600 text-white px-5 py-2 text-sm font-medium hover:opacity-90"
+        >
+          Conjugation drill →
+        </Link>
+
+        <nav aria-label="verb group" className="flex flex-wrap justify-center gap-2">
+          {(["irregular", "regular"] as const).map((g) => (
+            <PillLink
+              key={g}
+              href={{ pathname: "/verbs", query: { tense, group: g } }}
+              active={group === g}
+              label={g === "irregular" ? "Irregular" : "Regular"}
+            />
+          ))}
+        </nav>
+
+        <nav aria-label="tense" className="flex flex-wrap justify-center gap-2">
+          {TENSES.map((t) => (
+            <PillLink
+              key={t}
+              href={{ pathname: "/verbs", query: { tense: t, group } }}
+              active={tense === t}
+              label={TENSE_LABELS[t]}
+            />
+          ))}
         </nav>
 
         <VerbsClient
-          alreadyImported={imported}
-          cardCount={table.length * PERSONS.length}
+          key={`${group}-${tense}`}
+          alreadyImported={complete}
+          cardCount={cardCount}
           tense={tense}
+          group={group}
         />
 
         <div className="overflow-x-auto rounded-lg border border-zinc-300 dark:border-zinc-700">
@@ -99,7 +99,7 @@ export default async function VerbsPage({ searchParams }: Props) {
                     <div className="text-xs text-zinc-500">{v.english}</div>
                   </td>
                   {PERSONS.map((p) => (
-                    <td key={p} className="px-3 py-2 font-mono">
+                    <td key={p} className="px-3 py-2 font-mono whitespace-nowrap">
                       {v.forms[p]}
                     </td>
                   ))}
@@ -122,12 +122,12 @@ export default async function VerbsPage({ searchParams }: Props) {
   );
 }
 
-function TenseLink({
+function PillLink({
   href,
   active,
   label,
 }: {
-  href: { pathname: "/verbs"; query: { tense: Tense } };
+  href: { pathname: "/verbs"; query: { tense: Tense; group: VerbGroup } };
   active: boolean;
   label: string;
 }) {
@@ -135,7 +135,11 @@ function TenseLink({
     ? "bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900"
     : "border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-900";
   return (
-    <Link href={href} className={`rounded-full px-4 py-2 text-sm font-medium ${cls}`}>
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`rounded-full px-4 py-2 text-sm font-medium ${cls}`}
+    >
       {label}
     </Link>
   );

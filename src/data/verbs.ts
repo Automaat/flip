@@ -1,8 +1,41 @@
-export type Person = "yo" | "tú" | "él/ella" | "nosotros" | "ellos/ellas";
-export type Tense = "present" | "preterite" | "imperfect";
+export type Person = "yo" | "tú" | "él/ella" | "nosotros" | "vosotros" | "ellos/ellas";
+export type Tense = "present" | "preterite" | "imperfect" | "perfect";
 
-/** Latin-American 5-person paradigm (no vosotros). */
-export const PERSONS: Person[] = ["yo", "tú", "él/ella", "nosotros", "ellos/ellas"];
+/** Peninsular 6-person paradigm. */
+export const PERSONS: Person[] = ["yo", "tú", "él/ella", "nosotros", "vosotros", "ellos/ellas"];
+
+export const TENSES: Tense[] = ["present", "preterite", "perfect", "imperfect"];
+
+export const TENSE_LABELS: Record<Tense, string> = {
+  present: "Presente",
+  preterite: "Indefinido",
+  perfect: "Perfecto",
+  imperfect: "Imperfecto",
+};
+
+export type VerbGroup = "irregular" | "regular";
+
+/** Infinitives fully regular in present/indefinido/imperfecto (participle may be irregular). */
+export const REGULAR_VERBS: { infinitive: string; english: string }[] = [
+  { infinitive: "hablar", english: "to speak" },
+  { infinitive: "trabajar", english: "to work" },
+  { infinitive: "estudiar", english: "to study" },
+  { infinitive: "comprar", english: "to buy" },
+  { infinitive: "cocinar", english: "to cook" },
+  { infinitive: "viajar", english: "to travel" },
+  { infinitive: "escuchar", english: "to listen" },
+  { infinitive: "tomar", english: "to take / to drink" },
+  { infinitive: "comer", english: "to eat" },
+  { infinitive: "beber", english: "to drink" },
+  { infinitive: "aprender", english: "to learn" },
+  { infinitive: "vender", english: "to sell" },
+  { infinitive: "romper", english: "to break" },
+  { infinitive: "vivir", english: "to live" },
+  { infinitive: "escribir", english: "to write" },
+  { infinitive: "abrir", english: "to open" },
+  { infinitive: "recibir", english: "to receive" },
+  { infinitive: "subir", english: "to go up" },
+];
 
 export type VerbConjugation = {
   infinitive: string;
@@ -17,7 +50,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "ser",
     english: "to be (essence)",
     tense: "present",
-    forms: { yo: "soy", tú: "eres", "él/ella": "es", nosotros: "somos", "ellos/ellas": "son" },
+    forms: { yo: "soy", tú: "eres", "él/ella": "es", nosotros: "somos", vosotros: "sois", "ellos/ellas": "son" },
     exampleByPerson: {
       yo: { es: "Yo soy de México.", en: "I am from Mexico." },
       tú: { es: "Tú eres mi amigo.", en: "You are my friend." },
@@ -30,7 +63,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "estar",
     english: "to be (state/location)",
     tense: "present",
-    forms: { yo: "estoy", tú: "estás", "él/ella": "está", nosotros: "estamos", "ellos/ellas": "están" },
+    forms: { yo: "estoy", tú: "estás", "él/ella": "está", nosotros: "estamos", vosotros: "estáis", "ellos/ellas": "están" },
     exampleByPerson: {
       yo: { es: "Yo estoy cansado.", en: "I am tired." },
       tú: { es: "Tú estás en la oficina.", en: "You are at the office." },
@@ -43,7 +76,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "ir",
     english: "to go",
     tense: "present",
-    forms: { yo: "voy", tú: "vas", "él/ella": "va", nosotros: "vamos", "ellos/ellas": "van" },
+    forms: { yo: "voy", tú: "vas", "él/ella": "va", nosotros: "vamos", vosotros: "vais", "ellos/ellas": "van" },
     exampleByPerson: {
       yo: { es: "Yo voy al mercado.", en: "I go to the market." },
       tú: { es: "Tú vas a la escuela.", en: "You go to school." },
@@ -56,7 +89,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "tener",
     english: "to have",
     tense: "present",
-    forms: { yo: "tengo", tú: "tienes", "él/ella": "tiene", nosotros: "tenemos", "ellos/ellas": "tienen" },
+    forms: { yo: "tengo", tú: "tienes", "él/ella": "tiene", nosotros: "tenemos", vosotros: "tenéis", "ellos/ellas": "tienen" },
     exampleByPerson: {
       yo: { es: "Yo tengo dos hermanos.", en: "I have two brothers." },
       tú: { es: "Tú tienes razón.", en: "You are right." },
@@ -69,7 +102,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "hacer",
     english: "to do / to make",
     tense: "present",
-    forms: { yo: "hago", tú: "haces", "él/ella": "hace", nosotros: "hacemos", "ellos/ellas": "hacen" },
+    forms: { yo: "hago", tú: "haces", "él/ella": "hace", nosotros: "hacemos", vosotros: "hacéis", "ellos/ellas": "hacen" },
     exampleByPerson: {
       yo: { es: "Yo hago la tarea.", en: "I do the homework." },
       tú: { es: "Tú haces ejercicio.", en: "You exercise." },
@@ -82,7 +115,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "poder",
     english: "to be able / can",
     tense: "present",
-    forms: { yo: "puedo", tú: "puedes", "él/ella": "puede", nosotros: "podemos", "ellos/ellas": "pueden" },
+    forms: { yo: "puedo", tú: "puedes", "él/ella": "puede", nosotros: "podemos", vosotros: "podéis", "ellos/ellas": "pueden" },
     exampleByPerson: {
       yo: { es: "Yo puedo hablar inglés.", en: "I can speak English." },
       tú: { es: "Tú puedes ayudarme.", en: "You can help me." },
@@ -95,7 +128,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "querer",
     english: "to want / love",
     tense: "present",
-    forms: { yo: "quiero", tú: "quieres", "él/ella": "quiere", nosotros: "queremos", "ellos/ellas": "quieren" },
+    forms: { yo: "quiero", tú: "quieres", "él/ella": "quiere", nosotros: "queremos", vosotros: "queréis", "ellos/ellas": "quieren" },
     exampleByPerson: {
       yo: { es: "Yo quiero agua.", en: "I want water." },
       tú: { es: "Tú quieres salir.", en: "You want to go out." },
@@ -108,7 +141,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "saber",
     english: "to know (facts)",
     tense: "present",
-    forms: { yo: "sé", tú: "sabes", "él/ella": "sabe", nosotros: "sabemos", "ellos/ellas": "saben" },
+    forms: { yo: "sé", tú: "sabes", "él/ella": "sabe", nosotros: "sabemos", vosotros: "sabéis", "ellos/ellas": "saben" },
     exampleByPerson: {
       yo: { es: "Yo sé la respuesta.", en: "I know the answer." },
       tú: { es: "Tú sabes nadar.", en: "You know how to swim." },
@@ -121,7 +154,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "decir",
     english: "to say / tell",
     tense: "present",
-    forms: { yo: "digo", tú: "dices", "él/ella": "dice", nosotros: "decimos", "ellos/ellas": "dicen" },
+    forms: { yo: "digo", tú: "dices", "él/ella": "dice", nosotros: "decimos", vosotros: "decís", "ellos/ellas": "dicen" },
     exampleByPerson: {
       yo: { es: "Yo digo la verdad.", en: "I tell the truth." },
       tú: { es: "Tú dices mucho.", en: "You say a lot." },
@@ -134,7 +167,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "venir",
     english: "to come",
     tense: "present",
-    forms: { yo: "vengo", tú: "vienes", "él/ella": "viene", nosotros: "venimos", "ellos/ellas": "vienen" },
+    forms: { yo: "vengo", tú: "vienes", "él/ella": "viene", nosotros: "venimos", vosotros: "venís", "ellos/ellas": "vienen" },
     exampleByPerson: {
       yo: { es: "Yo vengo de la escuela.", en: "I come from school." },
       tú: { es: "Tú vienes conmigo.", en: "You come with me." },
@@ -147,7 +180,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "dar",
     english: "to give",
     tense: "present",
-    forms: { yo: "doy", tú: "das", "él/ella": "da", nosotros: "damos", "ellos/ellas": "dan" },
+    forms: { yo: "doy", tú: "das", "él/ella": "da", nosotros: "damos", vosotros: "dais", "ellos/ellas": "dan" },
     exampleByPerson: {
       yo: { es: "Yo doy un regalo.", en: "I give a gift." },
       tú: { es: "Tú das clases.", en: "You give classes." },
@@ -160,7 +193,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "ver",
     english: "to see / watch",
     tense: "present",
-    forms: { yo: "veo", tú: "ves", "él/ella": "ve", nosotros: "vemos", "ellos/ellas": "ven" },
+    forms: { yo: "veo", tú: "ves", "él/ella": "ve", nosotros: "vemos", vosotros: "veis", "ellos/ellas": "ven" },
     exampleByPerson: {
       yo: { es: "Yo veo una película.", en: "I am watching a movie." },
       tú: { es: "Tú ves bien.", en: "You see well." },
@@ -173,7 +206,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "poner",
     english: "to put / place",
     tense: "present",
-    forms: { yo: "pongo", tú: "pones", "él/ella": "pone", nosotros: "ponemos", "ellos/ellas": "ponen" },
+    forms: { yo: "pongo", tú: "pones", "él/ella": "pone", nosotros: "ponemos", vosotros: "ponéis", "ellos/ellas": "ponen" },
     exampleByPerson: {
       yo: { es: "Yo pongo la mesa.", en: "I set the table." },
       tú: { es: "Tú pones música.", en: "You put on music." },
@@ -186,7 +219,7 @@ export const IRREGULAR_VERBS_PRESENT: VerbConjugation[] = [
     infinitive: "salir",
     english: "to go out / leave",
     tense: "present",
-    forms: { yo: "salgo", tú: "sales", "él/ella": "sale", nosotros: "salimos", "ellos/ellas": "salen" },
+    forms: { yo: "salgo", tú: "sales", "él/ella": "sale", nosotros: "salimos", vosotros: "salís", "ellos/ellas": "salen" },
     exampleByPerson: {
       yo: { es: "Yo salgo temprano.", en: "I leave early." },
       tú: { es: "Tú sales con amigos.", en: "You go out with friends." },
@@ -202,7 +235,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "ser",
     english: "to be (essence)",
     tense: "preterite",
-    forms: { yo: "fui", tú: "fuiste", "él/ella": "fue", nosotros: "fuimos", "ellos/ellas": "fueron" },
+    forms: { yo: "fui", tú: "fuiste", "él/ella": "fue", nosotros: "fuimos", vosotros: "fuisteis", "ellos/ellas": "fueron" },
     exampleByPerson: {
       yo: { es: "Ayer fui el primero.", en: "Yesterday I was the first." },
       tú: { es: "Tú fuiste muy amable.", en: "You were very kind." },
@@ -215,7 +248,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "estar",
     english: "to be (state/location)",
     tense: "preterite",
-    forms: { yo: "estuve", tú: "estuviste", "él/ella": "estuvo", nosotros: "estuvimos", "ellos/ellas": "estuvieron" },
+    forms: { yo: "estuve", tú: "estuviste", "él/ella": "estuvo", nosotros: "estuvimos", vosotros: "estuvisteis", "ellos/ellas": "estuvieron" },
     exampleByPerson: {
       yo: { es: "Ayer estuve enfermo.", en: "Yesterday I was sick." },
       tú: { es: "Tú estuviste aquí.", en: "You were here." },
@@ -228,7 +261,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "ir",
     english: "to go",
     tense: "preterite",
-    forms: { yo: "fui", tú: "fuiste", "él/ella": "fue", nosotros: "fuimos", "ellos/ellas": "fueron" },
+    forms: { yo: "fui", tú: "fuiste", "él/ella": "fue", nosotros: "fuimos", vosotros: "fuisteis", "ellos/ellas": "fueron" },
     exampleByPerson: {
       yo: { es: "Fui a la tienda.", en: "I went to the store." },
       tú: { es: "Tú fuiste al cine.", en: "You went to the movies." },
@@ -241,7 +274,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "tener",
     english: "to have",
     tense: "preterite",
-    forms: { yo: "tuve", tú: "tuviste", "él/ella": "tuvo", nosotros: "tuvimos", "ellos/ellas": "tuvieron" },
+    forms: { yo: "tuve", tú: "tuviste", "él/ella": "tuvo", nosotros: "tuvimos", vosotros: "tuvisteis", "ellos/ellas": "tuvieron" },
     exampleByPerson: {
       yo: { es: "Ayer tuve un examen.", en: "Yesterday I had an exam." },
       tú: { es: "Tú tuviste razón.", en: "You were right." },
@@ -254,7 +287,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "hacer",
     english: "to do / to make",
     tense: "preterite",
-    forms: { yo: "hice", tú: "hiciste", "él/ella": "hizo", nosotros: "hicimos", "ellos/ellas": "hicieron" },
+    forms: { yo: "hice", tú: "hiciste", "él/ella": "hizo", nosotros: "hicimos", vosotros: "hicisteis", "ellos/ellas": "hicieron" },
     exampleByPerson: {
       yo: { es: "Hice la tarea anoche.", en: "I did the homework last night." },
       tú: { es: "Tú hiciste un buen trabajo.", en: "You did a good job." },
@@ -267,7 +300,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "poder",
     english: "to be able / could",
     tense: "preterite",
-    forms: { yo: "pude", tú: "pudiste", "él/ella": "pudo", nosotros: "pudimos", "ellos/ellas": "pudieron" },
+    forms: { yo: "pude", tú: "pudiste", "él/ella": "pudo", nosotros: "pudimos", vosotros: "pudisteis", "ellos/ellas": "pudieron" },
     exampleByPerson: {
       yo: { es: "No pude dormir bien.", en: "I couldn't sleep well." },
       tú: { es: "Tú pudiste ayudarme.", en: "You were able to help me." },
@@ -280,7 +313,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "querer",
     english: "to want / love",
     tense: "preterite",
-    forms: { yo: "quise", tú: "quisiste", "él/ella": "quiso", nosotros: "quisimos", "ellos/ellas": "quisieron" },
+    forms: { yo: "quise", tú: "quisiste", "él/ella": "quiso", nosotros: "quisimos", vosotros: "quisisteis", "ellos/ellas": "quisieron" },
     exampleByPerson: {
       yo: { es: "Quise llamarte ayer.", en: "I tried to call you yesterday." },
       tú: { es: "Tú quisiste venir.", en: "You wanted to come." },
@@ -293,7 +326,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "saber",
     english: "to know (facts)",
     tense: "preterite",
-    forms: { yo: "supe", tú: "supiste", "él/ella": "supo", nosotros: "supimos", "ellos/ellas": "supieron" },
+    forms: { yo: "supe", tú: "supiste", "él/ella": "supo", nosotros: "supimos", vosotros: "supisteis", "ellos/ellas": "supieron" },
     exampleByPerson: {
       yo: { es: "Supe la noticia anoche.", en: "I found out the news last night." },
       tú: { es: "Tú supiste la respuesta.", en: "You knew the answer." },
@@ -306,7 +339,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "decir",
     english: "to say / tell",
     tense: "preterite",
-    forms: { yo: "dije", tú: "dijiste", "él/ella": "dijo", nosotros: "dijimos", "ellos/ellas": "dijeron" },
+    forms: { yo: "dije", tú: "dijiste", "él/ella": "dijo", nosotros: "dijimos", vosotros: "dijisteis", "ellos/ellas": "dijeron" },
     exampleByPerson: {
       yo: { es: "Dije la verdad.", en: "I told the truth." },
       tú: { es: "Tú dijiste mucho.", en: "You said a lot." },
@@ -319,7 +352,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "venir",
     english: "to come",
     tense: "preterite",
-    forms: { yo: "vine", tú: "viniste", "él/ella": "vino", nosotros: "vinimos", "ellos/ellas": "vinieron" },
+    forms: { yo: "vine", tú: "viniste", "él/ella": "vino", nosotros: "vinimos", vosotros: "vinisteis", "ellos/ellas": "vinieron" },
     exampleByPerson: {
       yo: { es: "Vine de Madrid.", en: "I came from Madrid." },
       tú: { es: "Tú viniste tarde.", en: "You came late." },
@@ -332,7 +365,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "dar",
     english: "to give",
     tense: "preterite",
-    forms: { yo: "di", tú: "diste", "él/ella": "dio", nosotros: "dimos", "ellos/ellas": "dieron" },
+    forms: { yo: "di", tú: "diste", "él/ella": "dio", nosotros: "dimos", vosotros: "disteis", "ellos/ellas": "dieron" },
     exampleByPerson: {
       yo: { es: "Le di un regalo.", en: "I gave him a gift." },
       tú: { es: "Tú diste tu opinión.", en: "You gave your opinion." },
@@ -345,7 +378,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "ver",
     english: "to see",
     tense: "preterite",
-    forms: { yo: "vi", tú: "viste", "él/ella": "vio", nosotros: "vimos", "ellos/ellas": "vieron" },
+    forms: { yo: "vi", tú: "viste", "él/ella": "vio", nosotros: "vimos", vosotros: "visteis", "ellos/ellas": "vieron" },
     exampleByPerson: {
       yo: { es: "Vi una película anoche.", en: "I saw a movie last night." },
       tú: { es: "Tú viste el partido.", en: "You saw the game." },
@@ -358,7 +391,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "poner",
     english: "to put / place",
     tense: "preterite",
-    forms: { yo: "puse", tú: "pusiste", "él/ella": "puso", nosotros: "pusimos", "ellos/ellas": "pusieron" },
+    forms: { yo: "puse", tú: "pusiste", "él/ella": "puso", nosotros: "pusimos", vosotros: "pusisteis", "ellos/ellas": "pusieron" },
     exampleByPerson: {
       yo: { es: "Puse la mesa.", en: "I set the table." },
       tú: { es: "Tú pusiste música.", en: "You put on music." },
@@ -371,7 +404,7 @@ export const IRREGULAR_VERBS_PRETERITE: VerbConjugation[] = [
     infinitive: "salir",
     english: "to leave",
     tense: "preterite",
-    forms: { yo: "salí", tú: "saliste", "él/ella": "salió", nosotros: "salimos", "ellos/ellas": "salieron" },
+    forms: { yo: "salí", tú: "saliste", "él/ella": "salió", nosotros: "salimos", vosotros: "salisteis", "ellos/ellas": "salieron" },
     exampleByPerson: {
       yo: { es: "Salí temprano de casa.", en: "I left home early." },
       tú: { es: "Tú saliste con amigos.", en: "You went out with friends." },
@@ -387,7 +420,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "ser",
     english: "to be (essence)",
     tense: "imperfect",
-    forms: { yo: "era", tú: "eras", "él/ella": "era", nosotros: "éramos", "ellos/ellas": "eran" },
+    forms: { yo: "era", tú: "eras", "él/ella": "era", nosotros: "éramos", vosotros: "erais", "ellos/ellas": "eran" },
     exampleByPerson: {
       yo: { es: "Cuando era niño.", en: "When I was a child." },
       tú: { es: "Tú eras muy alto.", en: "You were very tall." },
@@ -400,7 +433,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "estar",
     english: "to be (state/location)",
     tense: "imperfect",
-    forms: { yo: "estaba", tú: "estabas", "él/ella": "estaba", nosotros: "estábamos", "ellos/ellas": "estaban" },
+    forms: { yo: "estaba", tú: "estabas", "él/ella": "estaba", nosotros: "estábamos", vosotros: "estabais", "ellos/ellas": "estaban" },
     exampleByPerson: {
       yo: { es: "Estaba cansado ayer.", en: "I was tired yesterday." },
       tú: { es: "Tú estabas en casa.", en: "You were at home." },
@@ -413,7 +446,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "ir",
     english: "to go",
     tense: "imperfect",
-    forms: { yo: "iba", tú: "ibas", "él/ella": "iba", nosotros: "íbamos", "ellos/ellas": "iban" },
+    forms: { yo: "iba", tú: "ibas", "él/ella": "iba", nosotros: "íbamos", vosotros: "ibais", "ellos/ellas": "iban" },
     exampleByPerson: {
       yo: { es: "Iba al colegio cada día.", en: "I used to go to school every day." },
       tú: { es: "Tú ibas a verla.", en: "You used to go see her." },
@@ -426,7 +459,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "tener",
     english: "to have",
     tense: "imperfect",
-    forms: { yo: "tenía", tú: "tenías", "él/ella": "tenía", nosotros: "teníamos", "ellos/ellas": "tenían" },
+    forms: { yo: "tenía", tú: "tenías", "él/ella": "tenía", nosotros: "teníamos", vosotros: "teníais", "ellos/ellas": "tenían" },
     exampleByPerson: {
       yo: { es: "Tenía un perro de niño.", en: "I had a dog as a kid." },
       tú: { es: "Tú tenías mucha paciencia.", en: "You had a lot of patience." },
@@ -439,7 +472,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "hacer",
     english: "to do / to make",
     tense: "imperfect",
-    forms: { yo: "hacía", tú: "hacías", "él/ella": "hacía", nosotros: "hacíamos", "ellos/ellas": "hacían" },
+    forms: { yo: "hacía", tú: "hacías", "él/ella": "hacía", nosotros: "hacíamos", vosotros: "hacíais", "ellos/ellas": "hacían" },
     exampleByPerson: {
       yo: { es: "Hacía deporte cada mañana.", en: "I used to exercise every morning." },
       tú: { es: "Tú hacías la cena.", en: "You used to make dinner." },
@@ -452,7 +485,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "poder",
     english: "to be able / could",
     tense: "imperfect",
-    forms: { yo: "podía", tú: "podías", "él/ella": "podía", nosotros: "podíamos", "ellos/ellas": "podían" },
+    forms: { yo: "podía", tú: "podías", "él/ella": "podía", nosotros: "podíamos", vosotros: "podíais", "ellos/ellas": "podían" },
     exampleByPerson: {
       yo: { es: "Podía cantar muy bien.", en: "I used to be able to sing well." },
       tú: { es: "Tú podías ayudar.", en: "You used to be able to help." },
@@ -465,7 +498,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "querer",
     english: "to want / love",
     tense: "imperfect",
-    forms: { yo: "quería", tú: "querías", "él/ella": "quería", nosotros: "queríamos", "ellos/ellas": "querían" },
+    forms: { yo: "quería", tú: "querías", "él/ella": "quería", nosotros: "queríamos", vosotros: "queríais", "ellos/ellas": "querían" },
     exampleByPerson: {
       yo: { es: "Quería ser piloto.", en: "I wanted to be a pilot." },
       tú: { es: "Tú querías salir.", en: "You wanted to go out." },
@@ -478,7 +511,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "saber",
     english: "to know (facts)",
     tense: "imperfect",
-    forms: { yo: "sabía", tú: "sabías", "él/ella": "sabía", nosotros: "sabíamos", "ellos/ellas": "sabían" },
+    forms: { yo: "sabía", tú: "sabías", "él/ella": "sabía", nosotros: "sabíamos", vosotros: "sabíais", "ellos/ellas": "sabían" },
     exampleByPerson: {
       yo: { es: "Sabía la respuesta de memoria.", en: "I knew the answer by heart." },
       tú: { es: "Tú sabías la ruta.", en: "You knew the route." },
@@ -491,7 +524,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "decir",
     english: "to say / tell",
     tense: "imperfect",
-    forms: { yo: "decía", tú: "decías", "él/ella": "decía", nosotros: "decíamos", "ellos/ellas": "decían" },
+    forms: { yo: "decía", tú: "decías", "él/ella": "decía", nosotros: "decíamos", vosotros: "decíais", "ellos/ellas": "decían" },
     exampleByPerson: {
       yo: { es: "Decía siempre la verdad.", en: "I always told the truth." },
       tú: { es: "Tú decías cosas raras.", en: "You used to say weird things." },
@@ -504,7 +537,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "venir",
     english: "to come",
     tense: "imperfect",
-    forms: { yo: "venía", tú: "venías", "él/ella": "venía", nosotros: "veníamos", "ellos/ellas": "venían" },
+    forms: { yo: "venía", tú: "venías", "él/ella": "venía", nosotros: "veníamos", vosotros: "veníais", "ellos/ellas": "venían" },
     exampleByPerson: {
       yo: { es: "Venía cada verano.", en: "I used to come every summer." },
       tú: { es: "Tú venías con tu padre.", en: "You used to come with your dad." },
@@ -517,7 +550,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "dar",
     english: "to give",
     tense: "imperfect",
-    forms: { yo: "daba", tú: "dabas", "él/ella": "daba", nosotros: "dábamos", "ellos/ellas": "daban" },
+    forms: { yo: "daba", tú: "dabas", "él/ella": "daba", nosotros: "dábamos", vosotros: "dabais", "ellos/ellas": "daban" },
     exampleByPerson: {
       yo: { es: "Daba clases de inglés.", en: "I used to teach English." },
       tú: { es: "Tú dabas buenos consejos.", en: "You used to give good advice." },
@@ -530,7 +563,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "ver",
     english: "to see",
     tense: "imperfect",
-    forms: { yo: "veía", tú: "veías", "él/ella": "veía", nosotros: "veíamos", "ellos/ellas": "veían" },
+    forms: { yo: "veía", tú: "veías", "él/ella": "veía", nosotros: "veíamos", vosotros: "veíais", "ellos/ellas": "veían" },
     exampleByPerson: {
       yo: { es: "Veía películas los viernes.", en: "I used to watch movies on Fridays." },
       tú: { es: "Tú veías el atardecer.", en: "You used to watch the sunset." },
@@ -543,7 +576,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "poner",
     english: "to put / place",
     tense: "imperfect",
-    forms: { yo: "ponía", tú: "ponías", "él/ella": "ponía", nosotros: "poníamos", "ellos/ellas": "ponían" },
+    forms: { yo: "ponía", tú: "ponías", "él/ella": "ponía", nosotros: "poníamos", vosotros: "poníais", "ellos/ellas": "ponían" },
     exampleByPerson: {
       yo: { es: "Ponía música por la mañana.", en: "I used to play music in the morning." },
       tú: { es: "Tú ponías la mesa.", en: "You used to set the table." },
@@ -556,7 +589,7 @@ export const IRREGULAR_VERBS_IMPERFECT: VerbConjugation[] = [
     infinitive: "salir",
     english: "to leave / go out",
     tense: "imperfect",
-    forms: { yo: "salía", tú: "salías", "él/ella": "salía", nosotros: "salíamos", "ellos/ellas": "salían" },
+    forms: { yo: "salía", tú: "salías", "él/ella": "salía", nosotros: "salíamos", vosotros: "salíais", "ellos/ellas": "salían" },
     exampleByPerson: {
       yo: { es: "Salía a correr cada tarde.", en: "I used to go running every afternoon." },
       tú: { es: "Tú salías con amigos.", en: "You used to go out with friends." },
@@ -586,10 +619,9 @@ export function buildClozeCards(verbs: VerbConjugation[] = IRREGULAR_VERBS_PRESE
     for (const p of PERSONS) {
       const answer = v.forms[p];
       const example = v.exampleByPerson[p];
-      if (!example) continue;
       // Unicode-aware word boundary (handles accents like 'está' that \b misses).
       const re = new RegExp(`(?<![\\p{L}\\p{N}])${answer}(?![\\p{L}\\p{N}])`, "iu");
-      const sentence = example.es.replace(re, "___");
+      const sentence = example ? example.es.replace(re, "___") : `${p} ___`;
       out.push({
         infinitive: v.infinitive,
         english: v.english,
@@ -597,9 +629,18 @@ export function buildClozeCards(verbs: VerbConjugation[] = IRREGULAR_VERBS_PRESE
         tense: v.tense,
         sentence,
         answer,
-        sentenceEnglish: example.en,
+        sentenceEnglish: example?.en ?? "",
       });
     }
   }
   return out;
+}
+
+/** Clozes whose (infinitive, person) is not already present — tops up decks imported before a person was added. */
+export function missingClozes(
+  clozes: ClozeCard[],
+  existing: { infinitive?: string; person?: string }[],
+): ClozeCard[] {
+  const have = new Set(existing.map((e) => `${e.infinitive}|${e.person}`));
+  return clozes.filter((c) => !have.has(`${c.infinitive}|${c.person}`));
 }

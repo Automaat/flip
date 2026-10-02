@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { TENSE_LABELS, TENSES } from "@/data/verbs";
 import { matchesAnswer } from "@/lib/cognates";
 import { isEditableTarget } from "@/lib/keys";
 import { pickPrompt, shouldPrompt } from "@/lib/prompts";
@@ -417,6 +418,11 @@ function ContextEscalation({ card }: { card: ReviewCard }) {
   );
 }
 
+function tenseLabel(tense: string | undefined): string | undefined {
+  const known = TENSES.find((t) => t === tense);
+  return known ? TENSE_LABELS[known] : tense;
+}
+
 function ClozeBody({ card, revealed }: { card: ReviewCard; revealed: boolean }) {
   const sentence = card.fields.sentence ?? "";
   const answer = card.fields.answer ?? "";
@@ -424,7 +430,7 @@ function ClozeBody({ card, revealed }: { card: ReviewCard; revealed: boolean }) 
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="text-xs uppercase tracking-wide text-zinc-500">
-        {card.fields.infinitive} · {card.fields.person} · {card.fields.tense}
+        {card.fields.infinitive} · {card.fields.person} · {tenseLabel(card.fields.tense)}
       </div>
       <div className="text-3xl font-medium text-zinc-900 dark:text-zinc-50">
         {parts.map((part, i) => (

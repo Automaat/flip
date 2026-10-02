@@ -1,87 +1,110 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { cards, decks, notes } from "@/db/schema";
-import {
-  buildClozeCards,
-  IRREGULAR_VERBS_IMPERFECT,
-  IRREGULAR_VERBS_PRESENT,
-  IRREGULAR_VERBS_PRETERITE,
-  type Tense,
-} from "@/data/verbs";
+import { buildClozeCards, missingClozes, type Tense, type VerbGroup } from "@/data/verbs";
+import { verbDeckName, verbTable } from "@/lib/conjugate";
 import { newCard } from "@/lib/fsrs";
 
 const BodySchema = z
-  .object({ tense: z.enum(["present", "preterite", "imperfect"]).optional() })
-  .optional();
+  .object({
+    tense: z.enum(["present", "preterite", "perfect", "imperfect"]).optional(),
+    group: z.enum(["irregular", "regular"]).optional(),
+  })
+  .nullish();
 
-const DECK_NAMES: Record<Tense, string> = {
-  present: "Present Indicative — Irregulars",
-  preterite: "Preterite — Irregulars",
-  imperfect: "Imperfect — Irregulars",
-};
-
-const TABLES: Record<Tense, typeof IRREGULAR_VERBS_PRESENT> = {
-  present: IRREGULAR_VERBS_PRESENT,
-  preterite: IRREGULAR_VERBS_PRETERITE,
-  imperfect: IRREGULAR_VERBS_IMPERFECT,
-};
+async function readJson(req: Request): Promise<{ ok: true; value: unknown } | { ok: false }> {
+  const text = await req.text();
+  if (!text.trim()) return { ok: true, value: null };
+  try {
+    return { ok: true, value: JSON.parse(text) };
+  } catch {
+    return { ok: false };
+  }
+}
 
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => null);
-  const parsed = BodySchema.safeParse(body);
-  const tense: Tense = parsed.success ? (parsed.data?.tense ?? "present") : "present";
-  const deckName = DECK_NAMES[tense];
-
-  const existing = await db.select().from(decks).where(eq(decks.name, deckName));
-  let deckId: string;
-  if (existing.length > 0) {
-    deckId = existing[0]!.id;
-    return NextResponse.json({ ok: true, deckId, tense, cardsCreated: 0, alreadyImported: true });
+  const body = await readJson(req);
+  if (!body.ok) {
+    return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
   }
-  const [deck] = await db
-    .insert(decks)
-    .values({ name: deckName, settings: { type: `verbs_${tense}_irregular`, tense } })
-    .returning();
-  deckId = deck!.id;
+  const parsed = BodySchema.safeParse(body.value);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+  const tense: Tense = parsed.data?.tense ?? "present";
+  const group: VerbGroup = parsed.data?.group ?? "irregular";
+  const deckName = verbDeckName(group, tense);
+  const clozes = buildClozeCards(verbTable(group, tense));
 
-  const clozes = buildClozeCards(TABLES[tense]);
-  let created = 0;
-  for (const c of clozes) {
-    const [note] = await db
-      .insert(notes)
-      .values({
-        noteType: "cloze",
-        fields: {
-          spanish: c.answer,
-          english: c.english,
-          sentence: c.sentence,
-          answer: c.answer,
-          sentenceEnglish: c.sentenceEnglish,
-          infinitive: c.infinitive,
-          person: c.person,
-          tense: c.tense,
-        },
-        tags: ["verb", tense, c.infinitive],
-        source: `verbs_${tense}_irregular`,
-      })
-      .returning();
-    if (!note) continue;
+  const result = await db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${deckName}))`);
+
+    const [existing] = await tx.select({ id: decks.id }).from(decks).where(eq(decks.name, deckName));
+    const deckId =
+      existing?.id ??
+      (
+        await tx
+          .insert(decks)
+          .values({ name: deckName, settings: { type: `verbs_${tense}_${group}`, tense, group } })
+          .returning({ id: decks.id })
+      )[0]!.id;
+
+    const present = existing
+      ? await tx
+          .select({ fields: notes.fields })
+          .from(cards)
+          .innerJoin(notes, eq(cards.noteId, notes.id))
+          .where(eq(cards.deckId, deckId))
+      : [];
+    const missing = missingClozes(
+      clozes,
+      present.map((r) => r.fields as { infinitive?: string; person?: string }),
+    );
+
     const empty = newCard();
-    await db.insert(cards).values({
-      noteId: note.id,
-      deckId,
-      state: "new",
-      due: empty.due,
-      stability: empty.stability,
-      difficulty: empty.difficulty,
-      elapsedDays: empty.elapsed_days,
-      scheduledDays: empty.scheduled_days,
-      reps: empty.reps,
-      lapses: empty.lapses,
-    });
-    created++;
-  }
-  return NextResponse.json({ ok: true, deckId, tense, cardsCreated: created });
+    for (const c of missing) {
+      const [note] = await tx
+        .insert(notes)
+        .values({
+          noteType: "cloze",
+          fields: {
+            spanish: c.answer,
+            english: c.english,
+            sentence: c.sentence,
+            answer: c.answer,
+            sentenceEnglish: c.sentenceEnglish,
+            infinitive: c.infinitive,
+            person: c.person,
+            tense: c.tense,
+          },
+          tags: ["verb", tense, group, c.infinitive],
+          source: `verbs_${tense}_${group}`,
+        })
+        .returning({ id: notes.id });
+      await tx.insert(cards).values({
+        noteId: note!.id,
+        deckId,
+        state: "new",
+        due: empty.due,
+        stability: empty.stability,
+        difficulty: empty.difficulty,
+        elapsedDays: empty.elapsed_days,
+        scheduledDays: empty.scheduled_days,
+        reps: empty.reps,
+        lapses: empty.lapses,
+      });
+    }
+    return { deckId, created: missing.length, existed: Boolean(existing) };
+  });
+
+  return NextResponse.json({
+    ok: true,
+    deckId: result.deckId,
+    tense,
+    group,
+    cardsCreated: result.created,
+    alreadyImported: result.existed && result.created === 0,
+  });
 }

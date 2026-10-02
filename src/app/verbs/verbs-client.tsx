@@ -3,32 +3,39 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { Tense, VerbGroup } from "@/data/verbs";
 
 export function VerbsClient({
   alreadyImported,
   cardCount,
   tense,
+  group,
 }: {
   alreadyImported: boolean;
   cardCount: number;
-  tense: "present" | "preterite" | "imperfect";
+  tense: Tense;
+  group: VerbGroup;
 }) {
   const router = useRouter();
   const [imported, setImported] = useState(alreadyImported);
   const [created, setCreated] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isImporting, setIsImporting] = useState(false);
+  const busy = isImporting || isPending;
 
   async function importDeck() {
+    if (busy) return;
+    setIsImporting(true);
     setError(null);
     const res = await fetch("/api/verbs/import", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ tense }),
-    });
+      body: JSON.stringify({ tense, group }),
+    }).finally(() => setIsImporting(false));
     const data = await res.json();
     if (!res.ok) {
-      setError(data.error ?? "import failed");
+      setError(typeof data.error === "string" ? data.error : "import failed");
       return;
     }
     setImported(true);
@@ -60,10 +67,10 @@ export function VerbsClient({
       <button
         type="button"
         onClick={importDeck}
-        disabled={isPending}
+        disabled={busy}
         className="rounded-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 px-5 py-2 text-sm hover:opacity-90 disabled:opacity-50"
       >
-        {isPending ? "Importing…" : "Add to my decks"}
+        {busy ? "Importing…" : "Add to my decks"}
       </button>
       {error && <p className="mt-2 text-sm text-rose-500">{error}</p>}
     </div>

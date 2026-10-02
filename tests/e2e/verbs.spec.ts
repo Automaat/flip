@@ -114,6 +114,15 @@ const tenseByLabel = Object.fromEntries(
   Object.entries(TENSE_LABELS).map(([t, label]) => [label, t as Tense]),
 );
 
+const ACCENTED: Record<string, string> = { a: "á", e: "é", i: "í", o: "ó", u: "ú" };
+
+/** Same letters, different accents: strip existing ones, or accent the first vowel. */
+function accentOnlyVariant(answer: string): string {
+  const stripped = answer.normalize("NFD").replace(/[\u0300-\u036f]/g, "").normalize("NFC");
+  if (stripped !== answer) return stripped;
+  return answer.replace(/[aeiou]/, (v) => ACCENTED[v]!);
+}
+
 async function expectedForm(page: Page): Promise<string> {
   const infinitive = (await page.getByTestId("drill-prompt").textContent())!.trim();
   const person = (await page.getByTestId("drill-person").textContent())!.trim() as Person;
@@ -143,13 +152,10 @@ test("drill grades wrong, correct and accent-less answers", async ({ page }) => 
   await page.clock.fastForward(1000);
   await input.press("Enter");
 
-  const answer = await expectedForm(page);
-  const stripped = answer.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const hasAccent = stripped !== answer;
-  await input.fill(stripped);
+  await input.fill(accentOnlyVariant(await expectedForm(page)));
   await input.press("Enter");
-  await expect(page.getByRole("status")).toContainText(hasAccent ? "Almost" : "Correct");
-  await expect(page.getByTestId("drill-score")).toHaveText(hasAccent ? "1 / 3" : "2 / 3");
+  await expect(page.getByRole("status")).toContainText("Almost");
+  await expect(page.getByTestId("drill-score")).toHaveText("1 / 3");
 });
 
 test("drill double-tap on Check keeps the correction visible", async ({ page }) => {

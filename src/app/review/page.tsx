@@ -1,6 +1,8 @@
+import { redirect } from "next/navigation";
 import { and, asc, eq, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { cards, decks, notes } from "@/db/schema";
+import { parseSince } from "@/lib/session-summary";
 import { getSettings } from "@/lib/settings";
 import { ReviewClient, type ReviewCard } from "./review-client";
 
@@ -78,7 +80,7 @@ async function fetchDeckName(deckId: string): Promise<string | null> {
   return rows[0]?.name ?? null;
 }
 
-type Props = { searchParams: Promise<{ deck?: string; mode?: string }> };
+type Props = { searchParams: Promise<{ deck?: string; mode?: string; since?: string }> };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -87,6 +89,12 @@ export default async function ReviewPage({ searchParams }: Props) {
   const deckId = sp?.deck && UUID_RE.test(sp.deck) ? sp.deck : undefined;
   const mode: "receptive" | "productive" =
     sp?.mode === "productive" ? "productive" : "receptive";
+  const since = parseSince(sp?.since, new Date());
+  if (!since) {
+    const query = new URLSearchParams({ mode, since: new Date().toISOString() });
+    if (deckId) query.set("deck", deckId);
+    redirect(`/review?${query.toString()}`);
+  }
   const settings = await getSettings();
   const introducedToday = await countNewIntroducedToday();
   const newCardsLeft = Math.max(0, settings.newCardsPerDay - introducedToday);
@@ -102,7 +110,9 @@ export default async function ReviewPage({ searchParams }: Props) {
         card={card}
         counts={counts}
         deckName={deckName}
+        deckId={deckId}
         mode={mode}
+        since={since.toISOString()}
       />
     </main>
   );

@@ -51,12 +51,16 @@ export function ReviewClient({
   card,
   counts,
   deckName,
+  deckId,
   mode = "receptive",
+  since,
 }: {
   card: ReviewCard | null;
   counts: Counts;
   deckName?: string | null;
+  deckId?: string;
   mode?: "receptive" | "productive";
+  since: string;
 }) {
   const router = useRouter();
   const [revealed, setRevealed] = useState(false);
@@ -196,6 +200,9 @@ export function ReviewClient({
         <h1 className="text-2xl font-semibold mb-2">All done</h1>
         <p className="text-zinc-500">No cards due. Come back later.</p>
         <CountsBar counts={counts} />
+        <div className="mt-6">
+          <EndSessionLink since={since} deckId={deckId} mode={mode} label="See session summary" />
+        </div>
       </div>
     );
   }
@@ -245,8 +252,11 @@ export function ReviewClient({
 
   return (
     <div className="w-full max-w-md flex flex-col items-center gap-8">
-      <CountsBar counts={counts} />
-      <ModeSwitch mode={mode} deckName={deckName} />
+      <div className="w-full flex items-center justify-between">
+        <CountsBar counts={counts} />
+        <EndSessionLink since={since} deckId={deckId} mode={mode} label="End session" />
+      </div>
+      <ModeSwitch mode={mode} deckId={deckId} since={since} />
       {deckName && (
         <div className="text-xs text-zinc-500">
           deck: <span className="font-medium text-zinc-700 dark:text-zinc-300">{deckName}</span>
@@ -466,49 +476,49 @@ function ProductiveBody({ card }: { card: ReviewCard }) {
   );
 }
 
-function ModeSwitch({
+type Mode = "receptive" | "productive";
+
+function reviewQuery(mode: Mode, since: string, deckId?: string): Record<string, string> {
+  return deckId ? { mode, since, deck: deckId } : { mode, since };
+}
+
+function EndSessionLink({
+  since,
+  deckId,
   mode,
-  deckName,
+  label,
 }: {
-  mode: "receptive" | "productive";
-  deckName?: string | null;
+  since: string;
+  deckId?: string;
+  mode: Mode;
+  label: string;
 }) {
-  const recHref: { pathname: "/review"; query: Record<string, string> } = {
-    pathname: "/review",
-    query: deckName ? { deck: "", mode: "receptive" } : { mode: "receptive" },
-  };
-  const proHref: { pathname: "/review"; query: Record<string, string> } = {
-    pathname: "/review",
-    query: deckName ? { deck: "", mode: "productive" } : { mode: "productive" },
-  };
-  // Note: we can't easily preserve deck id here without it being prop-drilled.
-  // Strip empty deck= keys to avoid mis-routing.
-  if (!deckName) {
-    delete recHref.query.deck;
-    delete proHref.query.deck;
-  }
+  return (
+    <Link
+      href={{ pathname: "/review/summary", query: reviewQuery(mode, since, deckId) }}
+      className="rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+    >
+      {label}
+    </Link>
+  );
+}
+
+function ModeSwitch({ mode, deckId, since }: { mode: Mode; deckId?: string; since: string }) {
   return (
     <div className="flex gap-1 text-xs">
-      <Link
-        href={{ pathname: "/review", query: { mode: "receptive" } }}
-        className={`rounded-full px-3 py-1 ${
-          mode === "receptive"
-            ? "bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900"
-            : "border border-zinc-300 dark:border-zinc-700"
-        }`}
-      >
-        ES → EN
-      </Link>
-      <Link
-        href={{ pathname: "/review", query: { mode: "productive" } }}
-        className={`rounded-full px-3 py-1 ${
-          mode === "productive"
-            ? "bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900"
-            : "border border-zinc-300 dark:border-zinc-700"
-        }`}
-      >
-        EN → ES
-      </Link>
+      {(["receptive", "productive"] as const).map((m) => (
+        <Link
+          key={m}
+          href={{ pathname: "/review", query: reviewQuery(m, since, deckId) }}
+          className={`rounded-full px-3 py-1 ${
+            mode === m
+              ? "bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900"
+              : "border border-zinc-300 dark:border-zinc-700"
+          }`}
+        >
+          {m === "receptive" ? "ES → EN" : "EN → ES"}
+        </Link>
+      ))}
     </div>
   );
 }

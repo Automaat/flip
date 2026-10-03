@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isEditableTarget } from "./keys";
+import { isEditableTarget, isLinkTarget } from "./keys";
 
 describe("isEditableTarget", () => {
   it.each([
@@ -22,5 +22,18 @@ describe("isEditableTarget", () => {
 
   it("ignores a non-string tagName", () => {
     expect(isEditableTarget({ tagName: 42 })).toBe(false);
+  });
+});
+
+describe("isLinkTarget", () => {
+  it.each([
+    ["anchor", { tagName: "A" }, true],
+    ["lowercase anchor", { tagName: "a" }, true],
+    ["button", { tagName: "BUTTON" }, false],
+    ["body", { tagName: "BODY" }, false],
+    ["missing", null, false],
+    ["non-string tagName", { tagName: 1 }, false],
+  ])("%s", (_name, target, expected) => {
+    expect(isLinkTarget(target)).toBe(expected);
   });
 });

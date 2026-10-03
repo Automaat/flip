@@ -91,8 +91,9 @@ export default async function ReviewPage({ searchParams }: Props) {
     sp?.mode === "productive" ? "productive" : "receptive";
   const since = parseSince(sp?.since, new Date());
   if (!since) {
-    const query = new URLSearchParams({ mode, since: new Date().toISOString() });
-    if (deckId) query.set("deck", deckId);
+    const query = new URLSearchParams(deckId ? { deck: deckId } : {});
+    query.set("mode", mode);
+    query.set("since", new Date().toISOString());
     redirect(`/review?${query.toString()}`);
   }
   const settings = await getSettings();

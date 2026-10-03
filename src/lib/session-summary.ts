@@ -10,14 +10,15 @@ export type SessionLogRow = {
   english: string;
 };
 
-export type ReturnBucket = "today" | "tomorrow" | "later";
+export type ReturnBucket = "now" | "today" | "tomorrow" | "later";
 
 export type SessionWord = {
   cardId: string;
   word: string;
   english: string;
   lastRating: SessionRating;
-  misses: number;
+  /** "again" ratings before the latest one. */
+  earlierMisses: number;
   returns: ReturnBucket;
 };
 
@@ -41,6 +42,7 @@ export function parseSince(raw: string | undefined, now: Date): Date | null {
 }
 
 export function returnBucket(due: Date, now: Date): ReturnBucket {
+  if (due <= now) return "now";
   const endOfToday = new Date(now);
   endOfToday.setHours(24, 0, 0, 0);
   if (due < endOfToday) return "today";
@@ -52,34 +54,39 @@ export function returnBucket(due: Date, now: Date): ReturnBucket {
 /** Fold review_log rows (any order) into per-session totals and one entry per card, latest rating wins. */
 export function summarizeSession(rows: SessionLogRow[], now: Date): SessionSummary {
   const byRating: Record<SessionRating, number> = { again: 0, hard: 0, good: 0, easy: 0 };
-  const returns: Record<ReturnBucket, number> = { today: 0, tomorrow: 0, later: 0 };
-  const latest = new Map<string, { word: SessionWord; at: number }>();
+  const returns: Record<ReturnBucket, number> = { now: 0, today: 0, tomorrow: 0, later: 0 };
+  const latest = new Map<string, { word: SessionWord; at: number; misses: number }>();
   let totalMs = 0;
 
   for (const r of rows) {
     byRating[r.rating]++;
     totalMs += r.reviewTimeMs;
     const prev = latest.get(r.cardId);
-    const misses = (prev?.word.misses ?? 0) + (r.rating === "again" ? 1 : 0);
+    const misses = (prev?.misses ?? 0) + (r.rating === "again" ? 1 : 0);
     const at = r.reviewedAt.getTime();
     if (prev && at < prev.at) {
-      prev.word.misses = misses;
+      prev.misses = misses;
       continue;
     }
     latest.set(r.cardId, {
       at,
+      misses,
       word: {
         cardId: r.cardId,
         word: r.word,
         english: r.english,
         lastRating: r.rating,
-        misses,
+        earlierMisses: 0,
         returns: returnBucket(r.due, now),
       },
     });
   }
 
-  const words = [...latest.values()].toSorted((a, b) => a.at - b.at).map((e) => e.word);
+  const entries = [...latest.values()].toSorted((a, b) => a.at - b.at);
+  for (const e of entries) {
+    e.word.earlierMisses = e.misses - (e.word.lastRating === "again" ? 1 : 0);
+  }
+  const words = entries.map((e) => e.word);
   for (const w of words) returns[w.returns]++;
 
   return { reviews: rows.length, byRating, totalMs, words, returns };

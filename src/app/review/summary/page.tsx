@@ -24,9 +24,10 @@ const RATING_STYLE: Record<SessionRating, string> = {
 };
 
 const RETURN_LABEL: Record<ReturnBucket, string> = {
-  today: "later today",
-  tomorrow: "tomorrow",
-  later: "in a few days",
+  now: "ready to review now",
+  today: "back later today",
+  tomorrow: "back tomorrow",
+  later: "back in a few days",
 };
 
 export default async function SessionSummaryPage({ searchParams }: Props) {
@@ -113,7 +114,7 @@ export default async function SessionSummaryPage({ searchParams }: Props) {
                   .filter((b) => summary.returns[b] > 0)
                   .map((b) => (
                     <li key={b}>
-                      {summary.returns[b]} back {RETURN_LABEL[b]}
+                      {summary.returns[b]} {RETURN_LABEL[b]}
                     </li>
                   ))}
               </ul>
@@ -128,8 +129,8 @@ export default async function SessionSummaryPage({ searchParams }: Props) {
                   </span>
                   <span className={`shrink-0 ${RATING_STYLE[w.lastRating]}`}>
                     {w.lastRating}
-                    {w.misses > 0 && w.lastRating !== "again" && (
-                      <span className="text-zinc-400"> (missed {w.misses}×)</span>
+                    {w.earlierMisses > 0 && (
+                      <span className="text-zinc-400"> (missed {w.earlierMisses}× before)</span>
                     )}
                   </span>
                 </li>

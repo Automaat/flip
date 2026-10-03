@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TENSE_LABELS, TENSES } from "@/data/verbs";
 import { matchesAnswer } from "@/lib/cognates";
-import { isEditableTarget } from "@/lib/keys";
+import { isEditableTarget, isLinkTarget } from "@/lib/keys";
 import { pickPrompt, shouldPrompt } from "@/lib/prompts";
 import { typedRating } from "@/lib/typed-rating";
 
@@ -122,6 +122,7 @@ export function ReviewClient({
 
   const [deepPrompt, setDeepPrompt] = useState<string | null>(null);
   const [rateError, setRateError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const rate = useCallback(
     async (rating: Rating) => {
@@ -133,11 +134,14 @@ export function ReviewClient({
         Math.max(0, Math.round(performance.now() - start)),
       );
       setRateError(null);
+      setSaving(true);
       const res = await fetch("/api/review/rate", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ cardId: card.id, rating, durationMs }),
-      }).catch(() => null);
+      })
+        .catch(() => null)
+        .finally(() => setSaving(false));
       if (!res || !res.ok) {
         setRateError(`Could not save rating${res ? ` (${res.status})` : ""}. Try again.`);
         return;
@@ -169,7 +173,7 @@ export function ReviewClient({
     const onKey = (e: KeyboardEvent) => {
       if (!card || isPending) return;
       // A space inside the answer box must type a space, not reveal the card.
-      if (isEditableTarget(e.target)) return;
+      if (isEditableTarget(e.target) || isLinkTarget(e.target)) return;
       if (!revealed) {
         if (e.key === " " || e.key === "Enter") {
           e.preventDefault();
@@ -254,7 +258,13 @@ export function ReviewClient({
     <div className="w-full max-w-md flex flex-col items-center gap-8">
       <div className="w-full flex items-center justify-between">
         <CountsBar counts={counts} />
-        <EndSessionLink since={since} deckId={deckId} mode={mode} label="End session" />
+        <EndSessionLink
+          since={since}
+          deckId={deckId}
+          mode={mode}
+          label={saving ? "Saving…" : "End session"}
+          disabled={saving}
+        />
       </div>
       <ModeSwitch mode={mode} deckId={deckId} since={since} />
       {deckName && (
@@ -487,16 +497,27 @@ function EndSessionLink({
   deckId,
   mode,
   label,
+  disabled = false,
 }: {
   since: string;
   deckId?: string;
   mode: Mode;
   label: string;
+  disabled?: boolean;
 }) {
+  const cls =
+    "rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 text-xs font-medium text-zinc-700 dark:text-zinc-300";
+  if (disabled) {
+    return (
+      <span aria-disabled="true" className={`${cls} opacity-50`}>
+        {label}
+      </span>
+    );
+  }
   return (
     <Link
       href={{ pathname: "/review/summary", query: reviewQuery(mode, since, deckId) }}
-      className="rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+      className={`${cls} hover:bg-zinc-100 dark:hover:bg-zinc-900`}
     >
       {label}
     </Link>

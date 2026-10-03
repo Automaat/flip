@@ -40,7 +40,7 @@ test("end session after two cards shows a saved summary", async ({ page, request
   await expect(page.getByRole("heading", { name: "Session saved" })).toBeVisible();
   await expect(page.getByTestId("summary-cards")).toHaveText("2");
   await expect(page.getByRole("list", { name: "words" }).getByRole("listitem")).toHaveCount(2);
-  await expect(page.getByText(/back (later today|tomorrow|in a few days)/).first()).toBeVisible();
+  await expect(page.getByText(/ready to review now|back (later today|tomorrow|in a few days)/).first()).toBeVisible();
 
   await page.getByRole("link", { name: "Continue practising" }).click();
   await expect(page).toHaveURL(/\/review\?/);
@@ -71,4 +71,20 @@ test("mode switch keeps the session start", async ({ page, request }) => {
   await page.getByRole("link", { name: "EN → ES" }).click();
   await expect(page).toHaveURL(/mode=productive/);
   expect(new URL(page.url()).searchParams.get("since")).toBe(since);
+});
+
+test("Enter on a focused End session link navigates instead of revealing", async ({ page, request }) => {
+  test.skip(!(await hasDueCard(request)), "no due cards");
+  await page.goto("/review");
+  await expect(page.getByRole("button", { name: /reveal/i })).toBeVisible();
+  await page.getByRole("link", { name: "End session" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Session saved" })).toBeVisible();
+});
+
+test("deck review keeps deck first in the stamped URL", async ({ page, request }) => {
+  await request.post("/api/verbs/import", { data: { tense: "preterite" } });
+  await page.goto("/decks");
+  await page.getByRole("link", { name: "Review" }).first().click();
+  await expect(page).toHaveURL(/\/review\?deck=[^&]+&mode=receptive&since=/);
 });

@@ -189,7 +189,7 @@ importers:
         version: 5.4.2
       zod:
         specifier: ^4.0.0
-        version: 4.6.5
+        version: 4.6.6
     devDependencies:
       '@playwright/test':
         specifier: ^1.60.0
@@ -3271,6 +3271,9 @@ packages:
   zod@4.6.5:
     resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
+  zod@4.6.6:
+    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
+
 snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
@@ -6134,3 +6137,5 @@ snapshots:
       zod: 4.6.5
 
   zod@4.6.5: {}
+
+  zod@4.6.6: {}

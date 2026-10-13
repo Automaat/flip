@@ -51,7 +51,7 @@ export function rowToFsrs(row: CardRow): FsrsCard {
     difficulty: row.difficulty,
     elapsed_days: row.elapsedDays,
     scheduled_days: row.scheduledDays,
-    learning_steps: 0,
+    learning_steps: row.learningSteps,
     reps: row.reps,
     lapses: row.lapses,
     state: dbToState[row.state],
@@ -67,12 +67,21 @@ export function fsrsToRowFields(card: FsrsCard) {
     difficulty: card.difficulty,
     elapsedDays: card.elapsed_days,
     scheduledDays: card.scheduled_days,
+    learningSteps: card.learning_steps,
     reps: card.reps,
     lapses: card.lapses,
     lastReview: card.last_review ?? null,
   };
 }
 
-export function review(card: FsrsCard, rating: AppRating, now = new Date()) {
-  return scheduler.next(card, now, ratingMap[rating]);
+export function review(
+  card: FsrsCard,
+  rating: AppRating,
+  now = new Date(),
+  retention = 0.9,
+) {
+  const configured = retention === 0.9
+    ? scheduler
+    : fsrs(generatorParameters({ ...params, request_retention: retention }));
+  return configured.next(card, now, ratingMap[rating]);
 }

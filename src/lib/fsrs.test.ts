@@ -15,6 +15,7 @@ function fakeRow(overrides: Partial<Card> = {}): Card {
     difficulty: 0,
     elapsedDays: 0,
     scheduledDays: 0,
+    learningSteps: 0,
     reps: 0,
     lapses: 0,
     lastReview: null,
@@ -85,5 +86,40 @@ describe("review", () => {
     const lapseBefore = card.lapses;
     const after = review(card, "again", later).card;
     expect(after.lapses).toBeGreaterThanOrEqual(lapseBefore);
+  });
+});
+
+describe("persisted scheduling", () => {
+  it("graduates after two correct reviews at their due times across row roundtrips", () => {
+    const now = new Date("2026-01-01T00:00:00Z");
+    const first = review(newCard(now), "good", now).card;
+    const stored = fakeRow(fsrsToRowFields(first));
+    expect(stored.state).toBe("learning");
+    const second = review(rowToFsrs(stored), "good", stored.due).card;
+    expect(second.state).toBe(State.Review);
+    expect(second.scheduled_days).toBeGreaterThan(0);
+  });
+
+  it("preserves relearning progress until graduation", () => {
+    const mature = rowToFsrs(fakeRow({
+      state: "review", stability: 100, difficulty: 5, reps: 20,
+      lastReview: new Date("2026-01-01T00:00:00Z"),
+    }));
+    const failed = review(mature, "again", new Date("2026-02-01T00:00:00Z")).card;
+    expect(failed.state).toBe(State.Relearning);
+    const stored = fakeRow(fsrsToRowFields(failed));
+    const recovered = review(rowToFsrs(stored), "good", stored.due).card;
+    expect(recovered.state).toBe(State.Review);
+  });
+
+  it("shortens mature-card intervals for higher target retention", () => {
+    const row = fakeRow({
+      state: "review", stability: 100, difficulty: 5, reps: 20,
+      lastReview: new Date("2026-01-01T00:00:00Z"),
+    });
+    const now = new Date("2026-01-31T00:00:00Z");
+    const lower = review(rowToFsrs(row), "good", now, 0.8).card;
+    const higher = review(rowToFsrs(row), "good", now, 0.95).card;
+    expect(lower.scheduled_days).toBeGreaterThan(higher.scheduled_days * 4);
   });
 });

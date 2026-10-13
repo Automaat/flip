@@ -144,6 +144,8 @@ export function ReviewClient({
       })
         .catch(() => null);
       if (res?.status === 409) {
+        submissionLocked.current = false;
+        setSaving(false);
         startTransition(() => router.refresh());
         return;
       }

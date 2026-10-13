@@ -81,6 +81,31 @@ test("rating buttons and keyboard are locked during a pending save", async ({ pa
   } finally { release(); }
 });
 
+test("quota conflict refresh allows retry when the same card remains mounted", async ({ page, request }) => {
+  const { deckId, cardId } = await fixture();
+  let attempts = 0;
+  await page.route("**/api/review/rate", async (route) => {
+    attempts++;
+    if (attempts > 1) { await route.continue(); return; }
+    const response = await route.fetch();
+    expect(response.status()).toBe(409);
+    await request.put("/api/settings", { data: { newCardsPerDay: 200 } });
+    await route.fulfill({ response });
+  });
+  await page.goto(`/review?deck=${deckId}`);
+  await page.getByRole("button", { name: /reveal/i }).click();
+  await request.put("/api/settings", { data: { newCardsPerDay: 0 } });
+  await page.getByRole("button", { name: "Good" }).click();
+  await expect(page.getByRole("button", { name: "Good" })).toBeEnabled();
+  await expect(page.getByRole("link", { name: "End session" })).toBeVisible();
+  await page.getByRole("button", { name: "Good" }).click();
+  await expect(page.getByRole("button", { name: "Good" })).not.toBeVisible();
+  const [card] = await pg`select reps from cards where id = ${cardId}`;
+  const [logs] = await pg`select count(*)::int as n from review_log where card_id = ${cardId}`;
+  expect(card.reps).toBe(1);
+  expect(logs.n).toBe(1);
+});
+
 test("zero quota excludes new cards from both entry points and rating; due reviews remain available", async ({ page, request }) => {
   const { deckId, cardId } = await fixture();
   await request.put("/api/settings", { data: { newCardsPerDay: 0 } });

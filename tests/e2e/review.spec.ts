@@ -10,8 +10,9 @@ async function fetchCardId(request: APIRequestContext): Promise<string | null> {
 test("review API serves a card and accepts a rating", async ({ request }) => {
   const id = await fetchCardId(request);
   if (!id) test.skip(true, "no due cards");
+  const next = await (await request.get("/api/review/next")).json();
   const res = await request.post("/api/review/rate", {
-    data: { cardId: id!, rating: "good", durationMs: 1234 },
+    data: { cardId: id!, expectedReps: next.card.reps, rating: "good", durationMs: 1234 },
   });
   expect(res.ok()).toBeTruthy();
   const body = await res.json();

@@ -1,34 +1,16 @@
 import { redirect } from "next/navigation";
-import { and, asc, eq, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { cards, decks, notes } from "@/db/schema";
 import { parseSince } from "@/lib/session-summary";
-import { getSettings } from "@/lib/settings";
+import { newCardsRemaining, reviewQueueWhere } from "@/lib/review-queue";
 import { ReviewClient, type ReviewCard } from "./review-client";
 
 export const dynamic = "force-dynamic";
 
-async function countNewIntroducedToday(): Promise<number> {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  // A card was "introduced today" if its first review_log entry is today.
-  const rows = await db.execute<{ count: number }>(sql`
-    select count(*)::int as count
-    from (
-      select card_id, min(reviewed_at) as first_at
-      from review_log
-      group by card_id
-    ) t
-    where t.first_at >= ${start.toISOString()}::timestamptz
-  `);
-  return rows[0]?.count ?? 0;
-}
-
 async function fetchNextCard(deckId: string | undefined, newCardsLeft: number): Promise<ReviewCard | null> {
   const now = new Date();
-  const dueOnly = lte(cards.due, now);
-  // Allow new cards only if quota remains.
-  const baseWhere = newCardsLeft > 0 ? or(eq(cards.state, "new"), dueOnly) : dueOnly;
+  const baseWhere = reviewQueueWhere(newCardsLeft, now);
   const whereExpr = deckId ? and(baseWhere, eq(cards.deckId, deckId)) : baseWhere;
   const due = await db
     .select({
@@ -96,9 +78,7 @@ export default async function ReviewPage({ searchParams }: Props) {
     query.set("since", new Date().toISOString());
     redirect(`/review?${query.toString()}`);
   }
-  const settings = await getSettings();
-  const introducedToday = await countNewIntroducedToday();
-  const newCardsLeft = Math.max(0, settings.newCardsPerDay - introducedToday);
+  const newCardsLeft = await newCardsRemaining();
   const [card, counts, deckName] = await Promise.all([
     fetchNextCard(deckId, newCardsLeft),
     fetchCounts(deckId),
@@ -107,7 +87,7 @@ export default async function ReviewPage({ searchParams }: Props) {
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-12">
       <ReviewClient
-        key={`${card?.id ?? "done"}-${mode}`}
+        key={`${card?.id ?? "done"}-${card?.reps ?? 0}-${mode}`}
         card={card}
         counts={counts}
         deckName={deckName}

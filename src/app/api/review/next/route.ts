@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
-import { and, asc, eq, lte, or, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { cards, notes } from "@/db/schema";
+
+import { newCardsRemaining, reviewQueueWhere } from "@/lib/review-queue";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const now = new Date();
+  const newCardsLeft = await newCardsRemaining(now);
 
   const due = await db
     .select({
@@ -20,7 +23,7 @@ export async function GET() {
     })
     .from(cards)
     .innerJoin(notes, eq(cards.noteId, notes.id))
-    .where(or(eq(cards.state, "new"), lte(cards.due, now)))
+    .where(reviewQueueWhere(newCardsLeft, now))
     .orderBy(
       sql`case when ${cards.state} = 'new' then 1 else 0 end`,
       asc(cards.due),
@@ -31,7 +34,7 @@ export async function GET() {
     const remaining = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(cards)
-      .where(and(eq(cards.state, "new")));
+      .where(eq(cards.state, "new"));
     return NextResponse.json({ card: null, remaining: remaining[0]?.count ?? 0 });
   }
 

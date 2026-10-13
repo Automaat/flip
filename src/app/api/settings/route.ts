@@ -9,6 +9,7 @@ const BodySchema = z.object({
   retention: z.number().min(0.7).max(0.99).optional(),
   voiceId: z.string().min(1).max(80).optional(),
   region: z.enum(["latam", "spain"]).optional(),
+  immersionPercent: z.number().int().min(0).max(100).optional(),
 });
 
 export async function GET() {

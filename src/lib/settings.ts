@@ -16,8 +16,9 @@ export async function getSettings(): Promise<AppSettings> {
   const [created] = await db
     .insert(appSettings)
     .values(DEFAULT_SETTINGS)
+    .onConflictDoNothing()
     .returning();
-  return created!;
+  return created ?? (await db.select().from(appSettings).where(eq(appSettings.id, 1)))[0]!;
 }
 
 export async function updateSettings(patch: Partial<AppSettings>): Promise<AppSettings> {

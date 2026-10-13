@@ -123,10 +123,12 @@ export function ReviewClient({
   const [deepPrompt, setDeepPrompt] = useState<string | null>(null);
   const [rateError, setRateError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const submissionLocked = useRef(false);
 
   const rate = useCallback(
     async (rating: Rating) => {
-      if (!card) return;
+      if (!card || submissionLocked.current) return;
+      submissionLocked.current = true;
       const start = startedAt.current ?? performance.now();
       // API caps durationMs at 10 min; a long-open card must not 400 and strand the review
       const durationMs = Math.min(
@@ -138,11 +140,18 @@ export function ReviewClient({
       const res = await fetch("/api/review/rate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ cardId: card.id, rating, durationMs }),
+        body: JSON.stringify({ cardId: card.id, expectedReps: card.reps, rating, durationMs }),
       })
-        .catch(() => null)
-        .finally(() => setSaving(false));
+        .catch(() => null);
+      if (res?.status === 409) {
+        submissionLocked.current = false;
+        setSaving(false);
+        startTransition(() => router.refresh());
+        return;
+      }
       if (!res || !res.ok) {
+        submissionLocked.current = false;
+        setSaving(false);
         setRateError(`Could not save rating${res ? ` (${res.status})` : ""}. Try again.`);
         return;
       }
@@ -171,7 +180,7 @@ export function ReviewClient({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!card || isPending) return;
+      if (!card || isPending || saving || deepPrompt) return;
       // A space inside the answer box must type a space, not reveal the card.
       if (isEditableTarget(e.target) || isLinkTarget(e.target)) return;
       if (!revealed) {
@@ -196,7 +205,7 @@ export function ReviewClient({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [card, revealed, isPending, typedResult, rate]);
+  }, [card, revealed, isPending, saving, deepPrompt, typedResult, rate]);
 
   if (!card) {
     return (
@@ -341,7 +350,7 @@ export function ReviewClient({
         <button
           type="button"
           onClick={() => setRevealed(true)}
-          disabled={isPending}
+          disabled={isPending || saving}
           className="inline-flex items-center justify-center rounded-full bg-zinc-900 dark:bg-zinc-50 px-8 py-3 text-sm font-medium text-zinc-50 dark:text-zinc-900 hover:opacity-90 disabled:opacity-50"
         >
           Reveal (space)
@@ -350,7 +359,7 @@ export function ReviewClient({
         <button
           type="button"
           onClick={() => void rate(typedRating(typedResult))}
-          disabled={isPending}
+          disabled={isPending || saving}
           className={`w-full rounded-lg px-6 py-3 text-white text-sm font-medium disabled:opacity-50 ${
             typedResult === "correct"
               ? "bg-emerald-500 hover:bg-emerald-600"
@@ -366,7 +375,7 @@ export function ReviewClient({
               key={b.rating}
               type="button"
               onClick={() => rate(b.rating)}
-              disabled={isPending}
+              disabled={isPending || saving}
               className={`flex flex-col items-center justify-center rounded-lg px-2 py-3 text-white text-sm font-medium disabled:opacity-50 ${b.cls}`}
             >
               <span>{b.label}</span>

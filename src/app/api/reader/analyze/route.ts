@@ -18,17 +18,23 @@ export async function POST(req: Request) {
   const tokens = tokenizeForReader(parsed.data.text);
   const uniqueWords = [...new Set(tokens.map((t) => t.word).filter((w): w is string => !!w))];
 
+  const wordLookup = sql<string>`case
+    when ${notes.noteType} in ('vocab', 'gender')
+      and ${notes.fields}->>'gender' in ('m', 'f')
+    then regexp_replace(lower(trim(${notes.fields}->>'spanish')), '^(el|la|los|las)\\s+', '')
+    else lower(trim(${notes.fields}->>'spanish'))
+  end`;
   // Look up best state per word: prefer 'review' > 'learning' > 'new'.
   const rows = uniqueWords.length === 0
     ? []
     : await db
         .select({
-          word: sql<string>`lower(${notes.fields}->>'spanish')`.as("word"),
+          word: wordLookup.as("word"),
           state: cards.state,
         })
         .from(notes)
         .innerJoin(cards, sql`${cards.noteId} = ${notes.id}`)
-        .where(inArray(sql`lower(${notes.fields}->>'spanish')`, uniqueWords));
+        .where(inArray(wordLookup, uniqueWords));
 
   const order: Record<typeof cards.$inferSelect.state, number> = {
     relearning: 0,

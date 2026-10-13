@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { scoreDictation, type DictationScore } from "@/lib/dictation";
 
@@ -37,11 +37,17 @@ function getSpeechRecognition(): SpeechCtor | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
+const subscribeToSpeechSupport = () => () => {};
+const speechSupported = () => !!getSpeechRecognition();
+const serverSpeechSupported = () => false;
+
 export function PronounceClient({ item }: { item: PronounceItem | null }) {
   const router = useRouter();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recRef = useRef<SpeechRecognitionLike | null>(null);
-  const supported = typeof window !== "undefined" && !!getSpeechRecognition();
+  const supported = useSyncExternalStore(
+    subscribeToSpeechSupport, speechSupported, serverSpeechSupported,
+  );
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [score, setScore] = useState<DictationScore | null>(null);

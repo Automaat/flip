@@ -23,6 +23,7 @@ export function ReaderClient() {
   const [text, setText] = useState(SAMPLE);
   const [data, setData] = useState<AnalyzeResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [selected, setSelected] = useState<{ word: string; context: string } | null>(null);
   const [english, setEnglish] = useState("");
   const [added, setAdded] = useState<Set<string>>(new Set());
@@ -31,6 +32,8 @@ export function ReaderClient() {
   async function analyze() {
     setLoading(true);
     setData(null);
+    setSelected(null);
+    setAnalyzeError(null);
     setAdded(new Set());
     try {
       const res = await fetch("/api/reader/analyze", {
@@ -38,8 +41,20 @@ export function ReaderClient() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      const body = await res.json();
+      if (!res.ok) {
+        setAnalyzeError(res.status === 400
+          ? "Enter between 1 and 20,000 characters."
+          : "Could not analyze text. Try again.");
+        return;
+      }
+      const body: AnalyzeResponse = await res.json();
+      if (!Array.isArray(body.tokens) || !body.familiarity) {
+        setAnalyzeError("Could not analyze text. Try again.");
+        return;
+      }
       setData(body);
+    } catch {
+      setAnalyzeError("Could not analyze text. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -94,6 +109,8 @@ export function ReaderClient() {
       >
         {loading ? "Analyzing…" : "Read"}
       </button>
+
+      {analyzeError && <p role="alert" className="text-sm text-rose-500">{analyzeError}</p>}
 
       {data && (
         <article className="rounded-lg border border-zinc-300 dark:border-zinc-700 p-4 text-lg leading-relaxed">

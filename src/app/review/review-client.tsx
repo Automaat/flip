@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TENSE_LABELS, TENSES } from "@/data/verbs";
-import { matchesAnswer } from "@/lib/cognates";
+import { matchesVocabAnswer, vocabPresentation } from "@/lib/vocab-answer";
 import { isEditableTarget, isLinkTarget } from "@/lib/keys";
 import { pickPrompt, shouldPrompt } from "@/lib/prompts";
 import { typedRating } from "@/lib/typed-rating";
@@ -211,8 +211,6 @@ export function ReviewClient({
     );
   }
 
-  const genderArticle =
-    card.fields.gender === "m" ? "el" : card.fields.gender === "f" ? "la" : null;
   const genderColor =
     card.fields.gender === "m"
       ? "text-sky-500"
@@ -230,7 +228,7 @@ export function ReviewClient({
 
   function checkTyped() {
     if (!typed.trim() || !card?.fields.spanish) return;
-    const ok = matchesAnswer(typed, card.fields.spanish);
+    const ok = matchesVocabAnswer(typed, { spanish: card.fields.spanish, gender: card.fields.gender });
     setTypedResult(ok ? "correct" : "wrong");
     setRevealed(true);
   }
@@ -285,7 +283,6 @@ export function ReviewClient({
           <VocabBody
             card={card}
             revealed={revealed}
-            genderArticle={genderArticle}
             genderColor={genderColor}
             playWord={playWord}
             playExample={playExample}
@@ -547,7 +544,6 @@ function ModeSwitch({ mode, deckId, since }: { mode: Mode; deckId?: string; sinc
 function VocabBody({
   card,
   revealed,
-  genderArticle,
   genderColor,
   playWord,
   playExample,
@@ -556,19 +552,22 @@ function VocabBody({
 }: {
   card: ReviewCard;
   revealed: boolean;
-  genderArticle: string | null;
   genderColor: string;
   playWord: () => void;
   playExample: () => void;
   typedResult?: "correct" | "wrong" | null;
   typedAnswer?: string;
 }) {
+  const { article, noun } = vocabPresentation({
+    spanish: card.fields.spanish ?? "",
+    gender: card.fields.gender,
+  });
   return (
     <>
       <div className="flex items-center gap-3">
         <div className="text-5xl font-semibold text-zinc-900 dark:text-zinc-50">
-          {genderArticle && <span className={genderColor}>{genderArticle} </span>}
-          {card.fields.spanish}
+          {article && <span className={genderColor}>{article} </span>}
+          {noun}
         </div>
         {card.fields.audio?.word && (
           <button
